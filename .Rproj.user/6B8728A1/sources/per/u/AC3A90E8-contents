@@ -1,0 +1,232 @@
+# demographic projection without loops
+# 16 april 2019
+
+source("scripts/packages-functions.R")
+source("scripts/projection-functions-2.R")
+
+# simulation parameters ----
+n.iters = 1000                       # for parametric uncertainty
+n.reps = 1                    # replicates of each parameter draw
+n.years = 30                      # number of years to project 
+n.habs = 2
+
+# scenarios 
+prop.urban = c(0.05, 0.25, 0.5) 
+prop.hab = c(1-prop.urban, prop.urban)
+
+qe.threshold = 50
+
+habitat.area = 389223
+
+# demographic parameters ----
+
+# initial population size
+Ninit.min = habitat.area*0.01
+Ninit.max =  habitat.area*1
+
+# maximum population size
+K.min = habitat.area*1
+K.max = habitat.area*6
+
+# demographic rate CVs
+para.cv = 0.15
+temp.cv = 0.15
+
+# adjustment on average demographic rates for urban habitats
+urban = c(0.8, 1)
+
+# survival rates
+young.surv = 0.3
+juv.surv = 0.9
+subad.surv = 0.72
+ad.surv = 0.9
+
+# growth rates
+#yj = 0.67
+js = 0.5
+sa = 0.25
+
+# fecundity and breeding propensity of subadults
+f = 9
+subad.bp = 0.2
+max.fec = 35
+
+# matrix parameters
+T.YY = young.surv * (1-yj)
+T.JY = young.surv * yj
+T.JJ = juv.surv * (1-js)
+T.SJ = juv.surv * js
+T.SS = subad.surv * (1-sa)
+T.AS = subad.surv * sa
+T.AA = ad.surv
+F.SY = f * subad.bp * T.YY
+F.AY = f * T.YY
+F.SJ = f * subad.bp * T.JY
+F.AJ = f * T.JY
+
+avg.mat = matrix(c(T.YY, 0, F.SY, F.AY,
+                   T.JY, T.JJ, F.SJ, F.SJ,
+                   0, T.SJ, T.SS, 0,
+                   0, 0, T.AS, T.AA),
+                 nrow = 4, ncol = 4, byrow = T)
+
+# parametric uncertainty SD
+para.sd.mat = avg.mat*para.cv
+
+# manually change sd for subad fecundity (less than 1 otherwise and leads to error)
+para.sd.mat[c(1,2),c(3,4)] <- f*para.cv
+
+# to isolate survival rates only
+surv.mask = matrix(c(1, 0, 0, 0,
+                     1, 1, 0, 0,
+                     0, 1, 1, 0,
+                     0, 0, 1, 1),
+                   nrow = 4, ncol = 4, byrow = T)
+
+# to isolate fecundities only
+fec.mask = matrix(c(0, 0, 1, 1, 
+                    0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 0),
+                  nrow = 4, ncol = 4, byrow = T)
+
+
+# run simulation ----
+
+habs = tibble(hab = rep(c(1:n.habs), each = length(prop.urban)),
+              prop.hab = prop.hab,
+              habitat = rep(c("Natural", "Urban"), each = length(prop.urban)),
+              scenario = rep(c(1:length(prop.urban)), n.habs))
+
+iters <- as_tibble(expand.grid(scenario = c(1:length(prop.urban)),
+                               iter = c(1:n.iters))) %>% 
+  mutate(parms = purrr::map(iter, draw_parms)) %>% 
+  unnest()
+
+sim <- as.tibble(expand.grid(iter = c(1:n.iters),
+                             scenario = c(1:length(prop.urban)),
+                             hab = c(1:n.habs))) %>% 
+  full_join(habs) %>% 
+  full_join(iters) %>%
+  mutate(projection = pmap(list(avg, hab, prop.hab, Ninit, K), project_pop)) 
+
+Ntot <- sim %>% 
+  select(iter, scenario, habitat, projection, Ninit, K) %>% 
+  unnest() 
+
+# saveRDS(sim, file = "output/urban50_5000.rds")
+# 
+# pushover("done")
+# 
+# 
+# # plot outcomes ----
+# 
+# scenario.labs = sapply(prop.urban, FUN = function(x) paste("Proportion Urban =", x, 
+#                                                            "\n No reduction in habitat area"))
+# 
+# # population size over time
+# Nplot <- Ntot %>% 
+#   group_by(scenario, iter, year, Ninit) %>% 
+#   summarize(Ntot = sum(Ntot)) %>% 
+#   ungroup() %>% 
+#   mutate(deltaN = Ntot-Ninit) %>% 
+#   group_by(scenario, year) %>% 
+#   summarize(medN = median(deltaN),
+#             lciN = quantile(deltaN, 0.025),
+#             uciN = quantile(deltaN, 0.975)) %>% 
+#   ungroup() %>% 
+#   mutate(scenariolab = scenario.labs[scenario]) %>% 
+#   ggplot(aes(x = year, y = medN)) +
+#   geom_ribbon(aes(ymin = lciN, ymax = uciN), fill = "gray80", alpha = 0.7) +
+#   geom_line(lwd = 1.5) +
+#   geom_hline(yintercept = 0, lty = 2) +
+#   ylab("Change in population size") +
+#   xlab("Year") +
+#   scale_x_continuous(breaks = seq(0, 30, 5), limits = c(1, 30)) +
+#   facet_wrap(~scenariolab, scales = "free") +
+#   #scale_y_continuous(limits = c(NA, 21000000)) +
+#   theme(strip.background = element_rect(fill = "white"),
+#         strip.text = element_text(margin = margin(2,2,2,2)))
+# Nplot
+# 
+# 
+# # quasi-extinction probability over time
+# Ntot %>% 
+#   group_by(scenario, iter, year) %>% 
+#   summarize(Ntot = sum(Ntot)) %>% 
+#   ungroup() %>% 
+#   mutate(qe = ifelse(Ntot < qe.threshold, 1, 0)) %>%
+#   group_by(scenario, year) %>% 
+#   summarize(pext = mean(qe)) %>% 
+#   mutate(scenariolab = scenario.labs[scenario]) %>% 
+#   ggplot(aes(x = year, y = pext)) +
+#   geom_line(lwd = 1.5) +
+#   geom_hline(yintercept = 0, lty = 2) +
+#   ylab("Quasi-extinction probability") +
+#   xlab("Year") +
+#   scale_x_continuous(breaks = seq(0, 30, 5), limits = c(1, 30)) +
+#   facet_wrap(~scenariolab) +
+#   theme(strip.background = element_rect(fill = "white"),
+#         strip.text = element_text(margin = margin(2,2,2,2))) 
+# 
+# 
+# 
+# # lambda
+# lamplot <- Ntot %>% 
+#   group_by(scenario, iter, year) %>% 
+#   summarize(N = sum(Ntot)) %>% 
+#   ungroup() %>% 
+#   group_by(scenario, iter) %>% 
+#   nest() %>% 
+#   mutate(lambda = map(data, calc_lambda)) %>% 
+#   unnest() %>% 
+#   ungroup() %>% 
+#   group_by(scenario, year) %>% 
+#   summarize(medlam = median(lambda, na.rm = T),
+#             lcilam = quantile(lambda, 0.025, na.rm = T),
+#             ucilam = quantile(lambda, 0.975, na.rm = T)) %>% 
+#   ungroup() %>% 
+#   mutate(scenariolab = scenario.labs[scenario]) %>% 
+#   ggplot(aes(x = year, y = medlam)) +
+#   geom_ribbon(aes(ymin = lcilam, ymax = ucilam), fill = "gray80", alpha = 0.7) +
+#   geom_line(lwd = 1) +
+#   geom_hline(yintercept = 1, lty = 2) +
+#   ylab("Population growth rate (\u03bb)") +
+#   xlab("Year") +  
+#   facet_wrap(~scenariolab, scales = "free") +
+#   #scale_y_continuous(limits = c(0, 16)) +
+#   scale_x_continuous(breaks = seq(0, 30, 5), limits = c(1, 30)) +
+#   theme(strip.background = element_rect(fill = "white"),
+#         strip.text = element_text(margin = margin(2,2,2,2))) 
+# lamplot
+# 
+# res <- plot_grid(Nplot, lamplot, ncol = 1, align = "hv",
+#                  labels = c("A", "B"))
+# 
+# save_plot(res, file = "output/sim_results_1.jpg",
+#           base_width = 10, base_height = 8)
+# 
+# # overall probabilities
+# Ntot %>% 
+#   group_by(scenario, iter, year) %>% 
+#   summarize(N = sum(Ntot)) %>% 
+#   ungroup() %>% 
+#   group_by(scenario, iter) %>% 
+#   nest() %>% 
+#   mutate(lambda = map(data, calc_lambda)) %>% 
+#   unnest() %>% 
+#   group_by(scenario, iter) %>% 
+#   summarize(meanlam = geo_mean(lambda, N),
+#             qe = ifelse(any(N < qe.threshold), 1, 0)) %>% 
+#   ungroup() %>% 
+#   mutate(inc = ifelse(meanlam > 1, 1, 0),
+#          dec = ifelse(meanlam < 1, 1, 0),
+#          Scenario = scenario.labs[scenario]) %>% 
+#   group_by(Scenario) %>% 
+#   summarize(pext = mean(qe),
+#             pinc = mean(inc),
+#             pdec = mean(dec)) %>% 
+#   rename(`Quasi-extinction` = pext,
+#          `Population increase` = pinc,
+#          `Population decline` = pdec) %>% 
+#   write_csv("output/scenario_probabilities.csv")

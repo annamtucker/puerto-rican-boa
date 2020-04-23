@@ -1,0 +1,49 @@
+# future scenarios
+
+prop.urban = 0.43
+habitat.area = 379029
+
+rate = c(0, 0.008, 0.016, 0.024)
+
+prop = matrix(NA, nrow = length(rate), ncol = 30)
+hab = matrix(NA, nrow = length(rate), ncol = 30)
+
+prop[,1] <- prop.urban
+hab[,1] <- habitat.area
+
+for(i in 1:length(rate)){
+  for(t in 2:30){
+    prop[i,t] <- prop[i,t-1] + rate[i]*prop[i,t-1]
+    hab[i,t] <- hab[i,t-1] - rate[i]*hab[i,t-1]
+  }
+}
+
+scenario_plot <- expand.grid(rate = rate,
+            year = c(1:30)) %>% 
+  mutate(prop = c(prop),
+         hab = round(c(hab))/100,
+         ratelab = case_when(
+           rate == 0 ~ "0%",
+           rate == 0.008 ~ "8%",
+           rate == 0.016 ~ "16%",
+           rate == 0.024 ~ "24%"
+         ),
+         ratelab = fct_reorder(ratelab, rate)) %>% 
+  gather(met, val, 3:4) %>% 
+  mutate(metlab = c("hab" = "Total habitat area (ha)", 
+                    "prop" = "Percent developed (%)")[met]) %>% 
+  ggplot(aes(x = year, y = val*100)) +
+  geom_line(lwd = 1) +
+  facet_grid(metlab ~ ratelab, scales = "free", switch = "y") +
+  annotate("segment", x=-Inf, xend=Inf, y=-Inf, yend=-Inf)+
+  annotate("segment", x=-Inf, xend=-Inf, y=-Inf, yend=Inf) +
+  ylab("") +
+  xlab("Year") +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text.x = element_text(size = 14, margin = margin(2,2,2,2)),
+        strip.text.y = element_text(size = 14, margin = margin(2,2,2,2), vjust = 33),
+        panel.spacing = unit(2, "lines"))
+scenario_plot
+
+save_plot(scenario_plot, file = "output/scenarios.jpg",
+          base_width = 10, base_height = 6)

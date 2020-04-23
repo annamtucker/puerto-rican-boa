@@ -1,0 +1,92 @@
+# sensitivity to different input demographic parameters
+# test different values for fecundity and juvenile survival
+
+source("scripts/packages-functions.R")
+source("scripts/projection-functions-2.R")
+
+# define ranges for survival and fecundity
+as.range = c(0.01, 0.99)
+ss.range = c(0.01, 0.99)
+js.range = c(0.01, 0.99)
+ys.range = c(0.01, 0.99)
+fec.range = c(1, 35)
+
+# simulation parameters ----
+n.iters = 10000                     # draws from range of parameter values
+n.reps = 1                      # replicates of each parameter draw
+n.years = 30                      # number of years to project 
+n.habs = 1                        # number of habitat types (1-natural, 2-rural, 3-urban)
+
+storm.freq = rep(0, n.habs)       # frequency of catastrophic storm events in each habitat type
+prop.hab = 1                      # proportion of population in each habitat type
+
+qe.threshold = 50
+
+# inputs ----
+
+# initial population size
+Ninit.min = 15000
+Ninit.max =  15000
+
+# growth estimates
+yj = 0.6667
+js = 1/2
+sa = 1/4
+
+# fecundity estimates
+subad.bp = 0.15
+fec.sd = 1.3
+
+# demographic rate CVs
+para.cv = 0.15
+temp.cv = 0.15
+
+# to isolate survival rates only
+surv.mask = matrix(c(1, 0, 0, 0,
+                     1, 1, 0, 0,
+                     0, 1, 1, 0,
+                     0, 0, 1, 1),
+                   nrow = 4, ncol = 4, byrow = T)
+
+# to isolate fecundities only
+fec.mask = matrix(c(0, 0, 1, 1, 
+                    0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 0),
+                  nrow = 4, ncol = 4, byrow = T)
+
+
+# run simulation ----
+
+habs = tibble(hab = c(1:n.habs),
+              storm.freq = storm.freq,
+              prop.hab = prop.hab)
+
+stage.labels = tibble(stage = c(1:4),
+                      life.stage = c("Young", "Juvenile", "Subadult", "Adult"))
+
+# scenarios <- as_tibble(expand.grid(iter = c(1:n.iters),
+#                                    parm = c("f", "young.surv", "juv.surv",
+#                                             "subad.surv", "ad.surv"))) %>% 
+#   mutate(id = paste(parm, iter))
+
+scenarios <- tibble(iter = c(1:n.iters))
+
+# 
+# Ntot %>% 
+#   filter(year == n.years & habitat == "Natural") %>% 
+#   ggplot(aes(x = fec, y = juv.surv, z = deltaN)) +
+#   stat_summary_2d(fun = "mean", bins = 10) +
+#   scale_fill_viridis_c(name = "Average change in\npopulation size") +
+#   xlab("Fecundity") +
+#   ylab("Juvenile survival") 
+# 
+# 
+# Ntot %>% 
+#   filter(year == n.years & habitat == "Natural") %>% 
+#   ggplot(aes(x = fec, y = juv.surv, z = qe)) +
+#   stat_summary_2d(fun = "mean", bins = 10) +
+#   scale_fill_viridis_c(name = "Quasi-extinction\nprobability") +
+#   xlab("Fecundity") +
+#   ylab("Juvenile survival") 
+# 

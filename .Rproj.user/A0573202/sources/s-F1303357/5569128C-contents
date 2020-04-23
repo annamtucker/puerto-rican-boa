@@ -1,0 +1,73 @@
+---
+title: "puerto rican boa *Epicrates inornatus*"
+author: "Anna Tucker"
+date: "April 9, 2019"
+output: html_document
+---
+  
+### project status   
+- last meeting in March 2018 ([notes](doc/Summary_RRR_SSA_Boa_17May2018.docx))  
+- plan to project future occupancy ([code](scripts/Boa_mkdwn.Rmd))
+  
+### species background   
+
+#### general    
+- largest snakes in Puerto Rico (1.8-2.7 m long)  
+- most common in NW - karst landscapes  
+- nocturnal, arboreal ([Reagan 1984](background/reagan_1984.pdf){target="_blank"})  
+- hang from tail in front of cave openings to capture bats ([Rodriguez-Duran 1996](background/rodriguez-duran_1996.pdf){target="_blank"})  
+- variety of habitats and prey ([Wiley 2003](background/wiley_2003.pdf){target="_blank"})  
+- average homerange ~8.5 ha for both sexes ([Wunderle et al 2004](background/wunderle_etal_2004.pdf){target="_blank"})  
+- little genetic structure among populations ([Puente-Rolon et al 2013](background/puente-rolon_etal_2013.pdf){target="_blank"})  
+   
+#### life history     
+- mate in spring (beginning of wet season)  
+- viviparous, ~20 young per clutch, range 13-30 ([Wiley 2003](background/wiley_2003.pdf){target="_blank"})    
+- lifespan up to 20 years in captivity, unknown in wild  
+- four-stage life cycle: young of the year (Y), juvenile (J), sub-adult (S), adult (A)   
+$$
+\left[\begin{array}
+{rrr}
+0 & 0 & F^{S} & F^{A} \\
+T^{YJ} & S^J & 0 & 0 \\
+0 & T^{JS} & S^S & 0 \\
+0 & 0 & T^{SA} & S^A \\
+\end{array}\right]
+$$
+  
+#### threats  
+- habitat loss (esp. after hurricanes)    
+- historically harvested for oil  
+- electrical wiring  
+- road mortality  
+- human persecution  
+- food availabiilty (bat population collapse post-Maria)  
+- diseases  
+- collection for pet trade  
+  
+#### protection history   
+- [listed Endangered 1970](https://ecos.fws.gov/ecp0/profile/speciesProfile?spcode=C00P#recovery){target="_blank"}   
+- [Recovery Plan](background/recovery-plan.pdf){target="_blank"} approved 1986, no measurable targets set, recommended further surveys  
+- [5-Year Review 2011](background/five-year-review-2011.pdf){target="_blank"} (another initiated 2016- not in ECOS)  
+
+
+  
+  
+### available data  
+- some demographic rates in literature  
+- shapefiles  
+- QGIS project - layers:  
+  + `epicrates_inornatus_habitat.img` (available)  
+  + `EpicratesInornatusHEX.shp` (missing)  
+  + `lifezones83.shp` (missing)  
+  + `pr_geodata-g03_legales_limites_lines_2015.kml` (missing)  
+  + `tl_2017_us_county.shp` (found online)   
+- from Holdridge life zones shapefile (`holdridge.shp`), two types on PR:  
+  + zone 29 - subtropical moist forest (middle)  
+  + zone 36 - tropical dry forest (east and west sides)  
+
+
+
+### analysis plan  
+- single analysis unit  
+- delineation of karst vs rainforest populations?  

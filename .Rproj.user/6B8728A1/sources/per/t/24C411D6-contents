@@ -1,0 +1,43 @@
+
+# packages ----
+
+library(tidyverse)
+library(popbio)
+library(cowplot)
+library(pushoverr)
+library(statmod)
+theme_set(theme_cowplot())
+
+#library(sf)
+#library(mapview)
+#library(raster)
+#library(rgdal)
+#library(sp)
+#library(ggmap)
+#library(dismo)
+#library(maps)
+#library(mapdata)
+
+set_pushover_user("u4p1ty6yd4yjtjqnvgstdurisuxwmc")
+set_pushover_app("arfs31ny98rxvmsq7e2zpard25krit")
+
+
+# beta distribution functions ----
+
+beta_shape_parms = function(mean, sd){
+  avg = mean
+  var = sd*sd
+  
+  #a = ifelse(var < avg*(1-avg), avg*(((avg*(1-avg))/var)-1), 100*avg)
+  #b = ifelse(var < avg*(1-avg), (1-avg)*(((avg*(1-avg))/var)-1), 100*(1-avg))
+  
+  a = 100*avg
+  b = 100*(1-avg)
+  
+  return(list(a = a, b = b))
+}
+
+get_beta_vals = function(n, mean, sd){
+  x = beta_shape_parms(mean, sd)
+  rbeta(n, x$a, x$b)
+}

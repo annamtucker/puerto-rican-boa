@@ -1,0 +1,175 @@
+
+### compare effects of reducing maximum K and/or maximum initial N
+
+
+Ntot <- sim %>% 
+  select(iter, rate, projection, Ninit, K) %>% 
+  unnest() 
+
+saveRDS(sim, file = "output/projection_reduce-both-K-Ninit.rds")
+
+pushover("done")
+
+
+# plot outcomes ----
+
+
+sim1 <- readRDS("output/projection_reduce-max-K.rds")
+sim2 <- readRDS("output/projection_reduce-max-Ninit.rds")
+sim3 <- readRDS("output/projection_reduce-both-K-Ninit.rds")
+sim4 <- readRDS("output/projection.rds")
+
+percent = gsub(" ", "", paste(urb.rates*1000, "%"))
+
+scenario.labs = sapply(percent, FUN = function(x) paste(x, "urban growth\nper decade"))
+
+labels <- tibble(rate = urb.rates,
+                 scenario = scenario.labs) %>% 
+  mutate(scenario = fct_reorder(scenario, rate))
+
+
+Ntot1 <- sim1 %>% 
+  select(iter, rate, projection, Ninit, K) %>% 
+  unnest() %>% 
+  mutate(maxInitDens = 1,
+         maxKDens = 3,
+         sim = "Max. initial N = 379,029\nMax. K = 1,137,087")
+
+Ntot2 <- sim2 %>% 
+  select(iter, rate, projection, Ninit, K) %>% 
+  unnest() %>% 
+  mutate(maxInitDens = 0.5,
+         maxKDens = 6,
+         sim = "Max. initial N = 189,515\nMax. K = 2,274,174")
+
+Ntot3 <- sim3 %>% 
+  select(iter, rate, projection, Ninit, K) %>% 
+  unnest() %>% 
+  mutate(maxInitDens = 0.5,
+         maxKDens = 3,
+         sim = "Max. initial N = 189,515\nMax. K = 1,137,087")
+
+Ntot4 <- sim4 %>% 
+  select(iter, rate, projection, Ninit, K) %>% 
+  unnest() %>% 
+  mutate(maxInitDens = 1,
+         maxKDens = 6,
+         sim = "Max. initial N = 379,029\nMax. K = 2,274,174")
+
+Ntot <- Ntot1 %>% 
+  bind_rows(Ntot2) %>% 
+  bind_rows(Ntot3) %>% 
+  bind_rows(Ntot4)
+
+
+# population size over time
+Nplot <- Ntot %>% 
+  full_join(labels) %>% 
+  group_by(scenario, iter, year, Ninit, sim) %>% 
+  summarize(Ntot = sum(Ntot)) %>% 
+  ungroup() %>% 
+  mutate(deltaN = Ntot-Ninit) %>% 
+  group_by(scenario, year, sim) %>% 
+  summarize(medN = median(deltaN),
+            lciN = quantile(deltaN, 0.025),
+            uciN = quantile(deltaN, 0.975)) %>% 
+  ungroup() %>% 
+  #mutate(scenariolab = scenario.labs[scenario]) %>% 
+  ggplot(aes(x = year, y = medN/1000000, col = sim, fill = sim)) +
+  geom_ribbon(aes(ymin = lciN/1000000, ymax = uciN/1000000), alpha = 0.5) +
+  geom_line(lwd = 1.5, alpha = 0.9) +
+  geom_hline(yintercept = 0, lty = 2) +
+  ylab("Change in population size\n(millions)") +
+  xlab("Year") +
+  facet_grid(sim~scenario, scales = "free") +
+  scale_x_continuous(breaks = seq(0, 30, 5), limits = c(1, 30)) +
+  scale_y_continuous(limits = c(NA, 10)) +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 14, margin = margin(2,2,2,2)),
+        strip.text.y = element_text(angle = 0),
+        panel.spacing = unit(2, "lines"),
+        legend.position = "none")
+Nplot
+
+ save_plot(Nplot, file = "output/reduce_max_K_Ninit.jpg", base_width = 10, base_height = 8)
+
+ 
+ Nplot_med <- Ntot %>% 
+   full_join(labels) %>% 
+   group_by(scenario, iter, year, Ninit, sim) %>% 
+   summarize(Ntot = sum(Ntot)) %>% 
+   ungroup() %>% 
+   mutate(deltaN = Ntot-Ninit) %>% 
+   group_by(scenario, year, sim) %>% 
+   summarize(medN = median(deltaN),
+             lciN = quantile(deltaN, 0.025),
+             uciN = quantile(deltaN, 0.975)) %>% 
+   ungroup() %>% 
+   #mutate(scenariolab = scenario.labs[scenario]) %>% 
+   ggplot(aes(x = year, y = medN/1000000, col = sim, fill = sim)) +
+   geom_line(lwd = 1.5, alpha = 0.9) +
+   geom_hline(yintercept = 0, lty = 2) +
+   ylab("Median change in population size\n(millions)") +
+   xlab("Year") +
+   facet_wrap(~scenario, scales = "free") +
+   scale_x_continuous(breaks = seq(0, 30, 5), limits = c(1, 30)) +
+   scale_y_continuous(limits = c(NA, 1)) +
+   theme(strip.background = element_rect(fill = "white"),
+         strip.text = element_text(size = 14, margin = margin(2,2,2,2)),
+         panel.spacing = unit(2, "lines"),
+         legend.position = "top") +
+   guides(col = guide_legend(override.aes = list(alpha = 1, lwd = 3))) +
+   scale_color_discrete(name = "")
+ Nplot_med
+
+ save_plot(Nplot_med, file = "output/reduce_max_K_Ninit_medians.jpg", base_width = 10, base_height = 8)
+ 
+ 
+ probs <- Ntot %>%
+   rename(scenario = rate) %>% 
+   group_by(scenario, iter, year, sim, maxInitDens, maxKDens) %>% 
+   summarize(N = sum(Ntot)) %>% 
+   ungroup() %>% 
+   group_by(scenario, iter, sim, maxInitDens, maxKDens) %>% 
+   nest() %>% 
+   mutate(lambda = map(data, calc_lambda)) %>% 
+   unnest() %>% 
+   group_by(scenario, iter, sim, maxInitDens, maxKDens) %>% 
+   summarize(inc = ifelse(geo_mean(lambda, N) >= 1, 1, 0),
+             dec = ifelse(geo_mean(lambda, N) < 1, 1, 0),
+             qe_50 = ifelse(any(N < 50), 1, 0),
+             qe_500 = ifelse(any(N < 500), 1, 0),
+             qe_1000 = ifelse(any(N < 1000), 1, 0),
+             qe_5000 = ifelse(any(N < 5000), 1, 0)) %>% 
+   ungroup() %>% 
+   #mutate(Scenario = scenario.labs[scenario]) %>% 
+   group_by(scenario, sim, maxInitDens, maxKDens) %>% 
+   summarize(pext_50 = mean(qe_50),
+             pext_500 = mean(qe_500),
+             pext_1000 = mean(qe_1000),
+             pext_5000 = mean(qe_5000),
+             pinc = mean(inc),
+             pdec = mean(dec))
+ probs
+ 
+ write.csv(probs, "output/probs_reduce_max_K_Ninit.csv", row.names = F)
+ 
+ 
+ qe_plot <- probs %>% 
+   gather(prob, val, 3:6) %>% 
+   mutate(prob = fct_relevel(prob, "pext_50", "pext_500", "pext_1000", "pext_5000")) %>% 
+   ggplot(aes(x = scenario*1000, y = val, color = sim)) +
+   geom_path(lty = 2, lwd = 1, position = position_dodge(width = 0.75), alpha = 0.8) +
+   geom_point(size = 3, position = position_dodge(width = 0.75)) +
+   xlab("Urbanization rate (% growth per decade)") +
+   ylab("Quasi-extinction probability") +
+   scale_x_continuous(breaks = c(0, 8, 16, 24)) +
+   # scale_color_viridis_d(name = "Quasi-extinction threshold",
+   #                       labels = c(50, 500, 1000, 5000),
+   #                       option = "D", 
+   #                       end = 0.8) +
+   theme(legend.position = "top",
+         strip.background = element_rect(fill = "white")) +
+   facet_wrap(~prob)
+ qe_plot
+ 

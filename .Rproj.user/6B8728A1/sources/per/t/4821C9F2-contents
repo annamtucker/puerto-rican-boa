@@ -1,0 +1,610 @@
+---
+title: "PR boa projection example"
+author: "Anna Tucker"
+date: "June 19, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(cowplot)
+library(popbio)
+library(knitr)
+knitr::opts_chunk$set(echo = FALSE, fig.width = 6, fig.height = 4, fig.align = "center",
+                      warning = F, message = F)
+theme_set(theme_cowplot())
+```
+
+
+```{r, include = FALSE}
+beta_shape_parms = function(mean, sd){
+  avg = mean
+  var = sd*sd
+  
+  a = ifelse(var < avg*(1-avg), avg*(((avg*(1-avg))/var)-1), 100*avg)
+  b = ifelse(var < avg*(1-avg), (1-avg)*(((avg*(1-avg))/var)-1), 100*(1-avg))
+  
+  # a = 100*avg
+  # b = 100*(1-avg)
+  
+  return(list(a = a, b = b))
+}
+
+get_beta_vals = function(n, mean, sd){
+  x = beta_shape_parms(mean, sd)
+  rbeta(n, x$a, x$b)
+}
+```
+
+## PR boa projection  
+  
+This document walks through the stochastic population projection developed for the PR boa. It follows the modeling methods included in the SSA and provides example calculations to demonstrate each aspect of the model.    
+  
+### Demographic matrix model  
+  
+The overall average demographic rates were calculated using the survival, growth, and fecundity rates estimated by the expert team.  
+    
+```{r}
+# survival rates
+young.surv = 0.3
+juv.surv = 0.9
+subad.surv = 0.72
+ad.surv = 0.9
+
+# growth rates
+yj = 0.67
+js = 0.55
+sa = 0.25
+
+# fecundity and breeding propensity of subadults
+f = 9*0.5
+subad.bp = 2/f
+max.fec = 35
+
+# matrix parameters
+T.YY = young.surv * (1-yj)
+T.JY = young.surv * yj
+T.JJ = juv.surv * (1-js)
+T.SJ = juv.surv * js
+T.SS = subad.surv * (1-sa)
+T.AS = subad.surv * sa
+T.AA = ad.surv
+F.SY = f * subad.bp * young.surv
+F.AY = f * young.surv
+
+
+avg.mat = matrix(c(T.YY, 0, F.SY, F.AY,
+               T.JY, T.JJ, 0, 0,
+               0, T.SJ, T.SS, 0,
+               0, 0, T.AS, T.AA),
+             nrow = 4, ncol = 4, byrow = T)
+
+avg.mat
+```
+
+### Initial population size   
+  
+The initial population size was drawn randomly for each replication from a range based on a density of 0.1-0.5 boas/ha and the total available habitat. Below I've plotted the distribution of 100,000 possible initial population sizes, and the blue vertical line is the initial population size that was randomly drawn for this example replication of the model.    
+  
+```{r}
+set.seed(621)
+
+habitat.area = 379029
+Ninit.min = habitat.area*0.1
+Ninit.max =  habitat.area*0.5
+
+Ninit = round(runif(1, Ninit.min, Ninit.max))
+
+data.frame(x = runif(100000, Ninit.min, Ninit.max)) %>% 
+  ggplot(aes(x = x)) +
+  geom_density(fill = "gray90") +
+  geom_vline(xintercept = Ninit, col = "steelblue2", lwd = 2) +
+  xlab("Possible initial population sizes") +
+  ylab("Frequency") +
+  annotate("text", x = 100000, y = 0.000001, label = paste("Randomly drawn\ninitial population size =", Ninit))
+```
+  
+Because we want to account for two different habitat types, we determine the initial number in each type by multiplying the initial population size by the proportion of habitat that falls in each type. Under the baseline conditions, the habitat is 91.3% natural and 8.7% urban.  
+  
+```{r}
+print(paste("Total initial population size =", Ninit))
+print(paste("Initial natural population =", Ninit, "x 0.57 =", round(Ninit*0.57)))
+print(paste("Initial urban population =", Ninit, "x 0.43 =", round(Ninit*0.43)))
+```
+  
+Because we are using a stage-based model, we also need to determine the initial number of individuals in each stage. To do this, we calculate the stable stage distribution, which is the proportion of the population in each stage when the population has reached stable dynamics. Below I've calculated the stable stage distribution based on the average values above:    
+  
+```{r}
+dist = eigen.analysis(avg.mat)$stable.stage
+
+init = tibble(Stage = c("Young", "Juvenile", "Subadult", "Adult", "Total"),
+              `Proportion in each stage` = c(round(dist, 3), 1),
+              `Initial number, natural habitat` = c(round(Ninit*0.57*dist), round(Ninit*0.57)),
+              `Initial number, urban habitat` = c(round(Ninit*0.43*dist), round(Ninit*0.43))
+)
+
+kable(init)
+```
+
+  
+### Maximum population size  
+  
+The maximum population size (carrying capacity) was drawn randomly for each replication from a range based on a density of 1-3 boas/ha and the total available habitat. Below I've plotted the distribution of 100,000 possible carrying capacities, and the blue vertical line is the maximum population size that was randomly drawn for this example replication of the model.    
+
+```{r}
+set.seed(620)
+
+K.min = habitat.area*1
+K.max = habitat.area*3
+
+K = round(runif(1, K.min, K.max))
+
+data.frame(x = runif(100000, K.min, K.max)) %>% 
+  ggplot(aes(x = x)) +
+  geom_density(fill = "gray90") +
+  geom_vline(xintercept = K, col = "steelblue2", lwd = 2) +
+  xlab("Possible carrying capacities") +
+  ylab("Frequency") +
+  annotate("text", x = 700000, y = 0.000001, label = paste("Randomly drawn\ncarrying capacity =", K))
+```
+
+### Uncertainty in demographic rates  
+  
+We did not conduct a formal elicitation to obtain estimates of uncertainty in the experts' estimates of each demographic rate. Therefore, we assumed the error of our mean estimate was 15% of the average for each rate. This was used to define a distribution of possible values for each rate. For each replication, we randomly drew a value from this distribution to represent the overall average value for that rate. I'll demonstrate this with adult survival. A similar distribution exists for each demographic rate in the model. 
+  
+```{r}
+set.seed(620)
+
+ad.surv = 0.9
+ad.surv.sd = 0.15*0.9
+
+AS = get_beta_vals(1, ad.surv, ad.surv.sd)
+
+data.frame(x = get_beta_vals(100000, ad.surv, ad.surv.sd)) %>% 
+  ggplot(aes(x = x)) +
+  geom_density(fill = "gray90") +
+  geom_vline(xintercept = AS, col = "steelblue2", lwd = 2) +
+  xlab("Possible values for young survival") +
+  ylab("Frequency") +
+  annotate("text", x = 0.8, y = 10, label = paste("Randomly drawn\n average adult survival =", round(AS, 3)))
+  
+```
+  
+### Temporal variation in demographic rates  
+  
+In most wild populations, rates of survival and fecundity vary stochastically among years due to random variation in the environment. We often refer to the rates experienced by a population in a given year as the "realized" annual vital rates (as opposed to the overall average rates). If we had long-term monitoring data such as mark-recapture data, we might be able to estimate the annual variation in survival, growth, and fecundity. However, since we do not have those data, we assumed that all demographic rates varied randomly each year within 15% of the average. Again we define a distribution of possible realized rates, and randomly draw a value from that distribution for each year. For adult survival, that looks like this:   
+  
+```{r}
+set.seed(621)
+
+yr.sd = AS*0.15
+yr.vals = get_beta_vals(30, AS, yr.sd)
+
+data.frame(x = yr.vals,
+           yr = c(1:30)) %>% 
+  ggplot(aes(x = yr, y = x)) +
+  geom_hline(yintercept = AS, lty = 2) +
+  geom_line() +
+  geom_point(size = 2) +
+  xlab("Year") +
+  ylab("Realized young survival rate") +
+  annotate("text", x = 25, y = 0.85, label = paste("Average adult survival =", round(AS, 3))) +
+  annotate("segment", x = 25, xend = 23, y = 0.86, yend = 0.925)
+```
+
+
+### Differences between natural and urban habitat  
+  
+We also sought to capture the differences between natural and urban habitat. Because the effect of living in close proximity to developed areas is not known but thought to be negative, we assumed that the rates of growth, survival, and fecundity would be lower in urban areas than natural areas by up to 10%. For each replication, we randomly drew a number between 0.9 and 1. We multiply this "urban effect" by each demographic rate to calculate the average rates for urban areas. We then randomly drew the year-specific rates in the same way as above.  
+  
+```{r}
+set.seed(621)
+
+urban.effect = runif(1, 0.5, 1)
+urban.AS = AS*urban.effect
+
+yr.sd.U = urban.AS*0.15
+yr.vals.U = get_beta_vals(30, urban.AS, yr.sd.U)
+
+print(paste("Natural average adult survival =", round(AS, 3)))
+print(paste("Urban effect =", round(urban.effect, 3)))
+print(paste("Urban average adult survival =", round(AS, 3), "x", 
+            round(urban.effect, 3), "=", round(urban.AS, 3)))
+```
+
+```{r}
+ann.text = data.frame(yr = c(22, 14),
+                      val = c(0.8, 0.55),
+                      hab = c("natural", "urban"),
+                      label = c(paste("Average =", round(AS, 3)),
+                                paste("Average =", round(urban.AS, 3))),
+                      x = c(22, 14),
+                      xend = c(25, 12),
+                      y = c(0.8, 0.56),
+                      yend = c(0.92, 0.75))
+
+data.frame(val = c(yr.vals, yr.vals.U),
+           hab = rep(c("natural", "urban"), each = 30),
+           yr = rep(c(1:30), 2),
+           avg = c(AS, rep(NA, 29), urban.AS, rep(NA, 29))) %>% 
+  ggplot(aes(x = yr, y = val, col = hab)) +
+  geom_hline(aes(yintercept = avg), lty = 2) +
+  geom_line() +
+  geom_point(size = 2) +
+  xlab("Year") +
+  ylab("Realized adult survival rate") +
+  facet_wrap(~hab, scales = "free") +
+  ylim(0.5, 1) +
+  theme(legend.position = "none",
+        strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 14)) +
+  geom_text(data = ann.text, aes(label = label), col = "black") +
+  geom_segment(data= ann.text, aes(x = x, xend = xend, y= y, yend= yend), col = "black")
+```
+  
+### Population projection   
+  
+We repeat the process of drawing an average value, calculating the adjusted value for urban habitat, and then randomly drawing the year-specific realized rates for all demographic rates. For this replicate of the model, those values are below:  
+  
+```{r, fig.width = 10, fig.height = 8}
+set.seed(60)
+
+# parametric uncertainty SD
+para.sd.mat = avg.mat*0.15
+
+# to isolate survival rates only
+surv.mask = matrix(c(1, 0, 0, 0,
+                     1, 1, 0, 0,
+                     0, 1, 1, 0,
+                     0, 0, 1, 1),
+                   nrow = 4, ncol = 4, byrow = T)
+
+# to isolate fecundities only
+fec.mask = matrix(c(0, 0, 1, 1, 
+                    0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 0),
+                  nrow = 4, ncol = 4, byrow = T)
+
+# natural
+surv = avg.mat*surv.mask
+surv.sd = para.sd.mat*surv.mask
+  
+avg.surv = matrix(get_beta_vals(16, surv, surv.sd),
+                  nrow = 4, ncol = 4)
+avg.surv[4,4] <- AS
+
+fec = avg.mat*fec.mask
+fec.sd = para.sd.mat*fec.mask
+  
+avg.fec = matrix(rlnorm(16, log(fec), fec.sd),
+                   nrow = 4, ncol = 4)
+  
+avg = avg.surv + avg.fec
+
+#urban
+urb.avg = avg*urban.effect
+
+
+# temporal variation
+yr.surv.mat = avg*surv.mask
+yr.surv.mat.U = urb.avg*surv.mask
+
+yr.surv.sd = yr.surv.mat*0.15
+yr.surv.sd.U = yr.surv.mat.U*0.15
+
+yr.fec.mat = avg*fec.mask
+yr.fec.mat.U = urb.avg*fec.mask
+
+yr.fec.sd = yr.fec.mat*0.15
+yr.fec.sd.U = yr.fec.mat.U*0.15
+
+max.fec = 35
+
+if(yr.fec.sd[1,3] < 1){yr.fec.sd[1,3] = 1.1}
+if(yr.fec.sd[1,4] < 1){yr.fec.sd[1,4] = 1.1}
+if(yr.fec.sd.U[1,3] < 1){yr.fec.sd.U[1,3] = 1.1}
+if(yr.fec.sd.U[1,4] < 1){yr.fec.sd.U[1,4] = 1.1}
+
+mat = array(NA, dim = c(30, 4, 4))
+for(i in 1:30){
+  yr.surv = matrix(get_beta_vals(16, yr.surv.mat, yr.surv.sd),
+                   nrow = 4, ncol = 4)
+  yr.fec = matrix(rlnorm(16, log(yr.fec.mat), log(yr.fec.sd)),
+                  nrow = 4, ncol = 4)
+  if(length(which(yr.fec > max.fec)) > 0) {
+    yr.fec[which(yr.fec > max.fec)] <- max.fec
+  }
+  yr.fec[which(is.na(yr.fec))] <- 0 
+    
+  mat[i,,] <- yr.surv+yr.fec
+}
+mat[,4,4] <- yr.vals
+
+
+mat.U = array(NA, dim = c(30, 4, 4))
+for(i in 1:30){
+  yr.surv.U = matrix(get_beta_vals(16, yr.surv.mat.U, yr.surv.sd.U),
+                   nrow = 4, ncol = 4)
+  yr.fec.U = matrix(rlnorm(16, log(yr.fec.mat.U), log(yr.fec.sd.U)),
+                  nrow = 4, ncol = 4)
+  if(length(which(yr.fec.U > max.fec)) > 0) {
+    yr.fec[which(yr.fec.U > max.fec)] <- max.fec
+  }
+  yr.fec.U[which(is.na(yr.fec.U))] <- 0 
+    
+  mat.U[i,,] <- yr.surv.U+yr.fec.U
+}
+mat.U[,4,4] <- yr.vals.U
+
+vals <- as.tibble(expand.grid(year = c(1:30), from = c(1:4), to = c(1:4))) %>% 
+  mutate(natural = c(mat),
+         urban = c(mat.U)) %>%
+  filter(natural > 0) %>% 
+  mutate(rate = case_when(
+    from == 1 & to == 1 ~ "Young survive and remain young",
+    from == 2 & to == 1 ~ "Young survive and grow to juvenile",
+    from == 2 & to == 2 ~ "Juvenile survive and remain juvenile",
+    from == 3 & to == 2 ~ "Juvenile survive and grow to subadult",
+    from == 3 & to == 3 ~ "Subadult survive and remain subadult",
+    from == 4 & to == 3 ~ "Subadult survive and grow to adult",
+    from == 4 & to == 4 ~ "Adult survival",
+    from == 1 & to == 3 ~ "Subadult fecundity",
+    from == 1 & to == 4 ~ "Adult fecundity"
+   )) %>% 
+  select(-from, -to) 
+
+facet_lims = data.frame(rate = rep(c("Young survive and remain young",
+                        "Young survive and grow to juvenile",
+                        "Juvenile survive and remain juvenile",
+                        "Juvenile survive and grow to subadult",
+                        "Subadult survive and remain subadult",
+                        "Subadult survive and grow to adult",
+                        "Adult survival",
+                        "Subadult fecundity",
+                        "Adult fecundity"), each = 2),
+               val = c(rep(c(0,1), 7), 0, 1, 0, 6),
+               year = 1,
+               habitat = "natural")
+
+vals %>% 
+  gather(habitat, val, 2:3) %>% 
+  ggplot(aes(x = year, y = val, col = habitat)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~rate, labeller = label_wrap_gen(), scales = "free") +
+  geom_blank(data = facet_lims) +
+  scale_color_discrete(name = "") +
+  theme(legend.position = "top",
+        strip.background = element_rect(fill = "white"),
+        strip.text = element_text(margin = margin(2,2,2,2))) +
+  xlab("Year") +
+  ylab("Realized rates")
+
+```
+  
+If we take those rates and the initial population size from above, we can project the population size over 30 years. If the total population size exceeds the carrying capacity drawn for this replicate, then fecundity will be set equal to 0 for that year. 
+  
+```{r}
+N = matrix(NA, nrow = 4, ncol = 30)
+N[,1] <- init$`Initial number, natural habitat`[1:4]
+  
+# project with temporal variation
+for(i in 2:30){
+    
+  # set fecundity = 0 if pop exceeds K
+  if(sum(N[,i-1]) > (K*0.913)){
+    mat[i-1,1,3:4] <- 0
+  }
+    
+  N[,i] <- round(mat[i-1,,] %*% N[,i-1])
+}
+Ntot = apply(N, 2, sum)
+
+# urban
+N.U = matrix(NA, nrow = 4, ncol = 30)
+N.U[,1] <- init$`Initial number, urban habitat`[1:4]
+  
+# project with temporal variation
+for(i in 2:30){
+    
+  # set fecundity = 0 if pop exceeds K
+  if(sum(N.U[,i-1]) > (K*0.087)){
+    mat.U[i-1,1,3:4] <- 0
+  }
+    
+  N.U[,i] <- round(mat.U[i-1,,] %*% N.U[,i-1])
+}
+Ntot.U = apply(N.U, 2, sum)
+
+data.frame(year = c(1:30),
+           natural = Ntot, 
+           urban = Ntot.U) %>% 
+  mutate(total = natural+urban) %>% 
+  gather(habitat, N, 2:4) %>% 
+  mutate(habitat = fct_relevel(as.factor(habitat), "total")) %>% 
+  ggplot(aes(x = year, y = N, col = habitat)) +
+  geom_line(aes(alpha = habitat)) +
+  geom_point(aes(alpha = habitat)) +
+  scale_color_manual(values = c("black", "#F8766D", "#00BFC4"), name = "") +
+  scale_alpha_manual(values = c(1, 0.5, 0.5), guide = F) +
+  theme(legend.position = "top") +
+  xlab("Year") +
+  ylab("Population size")
+```
+   
+Let's run another replicate:
+1. Draw initial population size and allocate individuals to habitat and stage  
+2. Draw a carrying capacity  
+3. Draw average values for all demographic rates  
+4. Draw the effect of urbanization and calculate average rates for urban habitats  
+5. Draw year-specific realized rates  
+6. Project the population for 30 years  
+  
+```{r}
+Ninit = round(runif(1, Ninit.min, Ninit.max))
+K = round(runif(1, K.min, K.max))
+
+dist = eigen.analysis(avg.mat)$stable.stage
+
+init = tibble(Stage = c("Young", "Juvenile", "Subadult", "Adult", "Total"),
+              `Proportion in each stage` = c(round(dist, 3), 1),
+              `Initial number, natural habitat` = c(round(Ninit*0.57*dist), round(Ninit*0.57)),
+              `Initial number, urban habitat` = c(round(Ninit*0.43*dist), round(Ninit*0.43))
+)
+
+# parametric uncertainty SD
+para.sd.mat = avg.mat*0.15
+
+
+# to isolate survival rates only
+surv.mask = matrix(c(1, 0, 0, 0,
+                     1, 1, 0, 0,
+                     0, 1, 1, 0,
+                     0, 0, 1, 1),
+                   nrow = 4, ncol = 4, byrow = T)
+
+# to isolate fecundities only
+fec.mask = matrix(c(0, 0, 1, 1, 
+                    0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 0),
+                  nrow = 4, ncol = 4, byrow = T)
+
+# natural
+surv = avg.mat*surv.mask
+surv.sd = para.sd.mat*surv.mask
+  
+avg.surv = matrix(get_beta_vals(16, surv, surv.sd),
+                  nrow = 4, ncol = 4)
+
+fec = avg.mat*fec.mask
+fec.sd = para.sd.mat*fec.mask
+  
+avg.fec = matrix(rlnorm(16, log(fec), fec.sd),
+                   nrow = 4, ncol = 4)
+  
+avg = avg.surv + avg.fec
+
+#urban
+urb.avg = avg*urban.effect
+
+
+# temporal variation
+yr.surv.mat = avg*surv.mask
+yr.surv.mat.U = urb.avg*surv.mask
+
+yr.surv.sd = yr.surv.mat*0.15
+yr.surv.sd.U = yr.surv.mat.U*0.15
+
+yr.fec.mat = avg*fec.mask
+yr.fec.mat.U = urb.avg*fec.mask
+
+yr.fec.sd = yr.fec.mat*0.15
+yr.fec.sd.U = yr.fec.mat.U*0.15
+
+max.fec = 35
+
+if(yr.fec.sd[1,3] < 1){yr.fec.sd[1,3] = 1.1}
+if(yr.fec.sd[1,4] < 1){yr.fec.sd[1,4] = 1.1}
+if(yr.fec.sd.U[1,3] < 1){yr.fec.sd.U[1,3] = 1.1}
+if(yr.fec.sd.U[1,4] < 1){yr.fec.sd.U[1,4] = 1.1}
+
+mat = array(NA, dim = c(30, 4, 4))
+for(i in 1:30){
+  yr.surv = matrix(get_beta_vals(16, yr.surv.mat, yr.surv.sd),
+                   nrow = 4, ncol = 4)
+  yr.fec = matrix(rlnorm(16, log(yr.fec.mat), log(yr.fec.sd)),
+                  nrow = 4, ncol = 4)
+  if(length(which(yr.fec > max.fec)) > 0) {
+    yr.fec[which(yr.fec > max.fec)] <- max.fec
+  }
+  yr.fec[which(is.na(yr.fec))] <- 0 
+    
+  mat[i,,] <- yr.surv+yr.fec
+}
+mat[,4,4] <- yr.vals
+
+
+mat.U = array(NA, dim = c(30, 4, 4))
+for(i in 1:30){
+  yr.surv.U = matrix(get_beta_vals(16, yr.surv.mat.U, yr.surv.sd.U),
+                   nrow = 4, ncol = 4)
+  yr.fec.U = matrix(rlnorm(16, log(yr.fec.mat.U), log(yr.fec.sd.U)),
+                  nrow = 4, ncol = 4)
+  if(length(which(yr.fec.U > max.fec)) > 0) {
+    yr.fec[which(yr.fec.U > max.fec)] <- max.fec
+  }
+  yr.fec.U[which(is.na(yr.fec.U))] <- 0 
+    
+  mat.U[i,,] <- yr.surv.U+yr.fec.U
+}
+mat.U[,4,4] <- yr.vals.U
+
+N = matrix(NA, nrow = 4, ncol = 30)
+N[,1] <- init$`Initial number, natural habitat`[1:4]
+  
+# project with temporal variation
+for(i in 2:30){
+    
+  # set fecundity = 0 if pop exceeds K
+  if(sum(N[,i-1]) > (K*0.913)){
+    mat[i-1,1,3:4] <- 0
+  }
+    
+  N[,i] <- round(mat[i-1,,] %*% N[,i-1])
+}
+Ntot = apply(N, 2, sum)
+
+# urban
+N.U = matrix(NA, nrow = 4, ncol = 30)
+N.U[,1] <- init$`Initial number, urban habitat`[1:4]
+  
+# project with temporal variation
+for(i in 2:30){
+    
+  # set fecundity = 0 if pop exceeds K
+  if(sum(N.U[,i-1]) > (K*0.087)){
+    mat.U[i-1,1,3:4] <- 0
+  }
+    
+  N.U[,i] <- round(mat.U[i-1,,] %*% N.U[,i-1])
+}
+Ntot.U = apply(N.U, 2, sum)
+
+data.frame(year = c(1:30),
+           natural = Ntot, 
+           urban = Ntot.U) %>% 
+  mutate(total = natural+urban) %>% 
+  gather(habitat, N, 2:4) %>% 
+  mutate(habitat = fct_relevel(as.factor(habitat), "total")) %>% 
+  ggplot(aes(x = year, y = N, col = habitat)) +
+  geom_line(aes(alpha = habitat)) +
+  geom_point(aes(alpha = habitat)) +
+  scale_color_manual(values = c("black", "#F8766D", "#00BFC4"), name = "") +
+  scale_alpha_manual(values = c(1, 0.5, 0.5), guide = F) +
+  theme(legend.position = "top") +
+  xlab("Year") +
+  ylab("Population size")
+```
+  
+And repeat that 1000 times:  
+  
+```{r}
+sim <- readRDS("output/final-projection.rds")
+Ntot <- sim %>% 
+  select(iter, rate, projection, Ninit, K) %>% 
+  unnest() %>% 
+  filter(rate == 0) 
+
+Ntot %>% 
+  filter(iter %in% sample(c(1:10000), 1000, F)) %>% 
+  ggplot(aes(x = year, y = Ntot, color = iter, group = iter)) +
+  geom_line(alpha = 0.8) +
+  scale_color_viridis_c() +
+  xlab("Year") +
+  ylab("Population size") +
+  theme(legend.position = "none")
+```
+   
+

@@ -1,0 +1,10 @@
+# puerto rican boa demographic projection 
+# 15 april 2019
+
+
+
+# simulation parameters ---- 
+n.reps = 10
+n.years = 30
+
+# demographic parameters ---- 

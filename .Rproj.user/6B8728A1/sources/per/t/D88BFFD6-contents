@@ -1,0 +1,217 @@
+# demographic projection without loops
+# 16 april 2019
+
+source("scripts/packages-functions.R")
+source("scripts/projection-functions-2.R")
+
+set.seed(419)
+
+# simulation parameters ----
+n.iters = 1000               # for parametric uncertainty
+n.reps = 1                    # replicates of each parameter draw
+n.years = 30                  # number of years to project 
+n.habs = 2
+
+# scenarios 
+prop.urban = 0.43
+habitat.area = 379029
+urb.rates = 0
+
+
+# demographic parameters ----
+
+# initial population size
+Ninit.min = habitat.area*0.1
+Ninit.max =  habitat.area*1
+
+# how does current pop size influence qe prob?
+#Ninit = seq(500, 40000, 500)
+
+# maximum population size
+K.min = habitat.area*1
+K.max = habitat.area*6
+
+# demographic rate CVs
+para.cv = 0.15
+temp.cv = 0.15
+
+# adjustment on average demographic rates for urban habitats
+urban = c(0.5, 1)
+
+# survival rates
+young.surv = 0.3
+juv.surv = 0.9
+subad.surv = 0.72
+ad.surv = 0.9
+
+# growth rates
+yj = 0.67
+js = 0.55
+sa = 0.25
+
+# fecundity and breeding propensity of subadults
+f = 9*0.5
+subad.bp = 2/f
+max.fec = 35
+
+# matrix parameters
+T.YY = young.surv * (1-yj)
+T.JY = young.surv * yj
+T.JJ = juv.surv * (1-js)
+T.SJ = juv.surv * js
+T.SS = subad.surv * (1-sa)
+T.AS = subad.surv * sa
+T.AA = ad.surv
+F.SY = f * subad.bp * young.surv
+F.AY = f * young.surv
+
+
+avg.mat = matrix(c(T.YY, 0, F.SY, F.AY,
+               T.JY, T.JJ, 0, 0,
+               0, T.SJ, T.SS, 0,
+               0, 0, T.AS, T.AA),
+             nrow = 4, ncol = 4, byrow = T)
+
+# parametric uncertainty SD
+para.sd.mat = avg.mat*para.cv
+
+# manually change sd for subad fecundity (less than 1 otherwise and leads to error)
+para.sd.mat[1,c(3,4)] <- f*para.cv
+
+# to isolate survival rates only
+surv.mask = matrix(c(1, 0, 0, 0,
+                     1, 1, 0, 0,
+                     0, 1, 1, 0,
+                     0, 0, 1, 1),
+                   nrow = 4, ncol = 4, byrow = T)
+
+# to isolate fecundities only
+fec.mask = matrix(c(0, 0, 1, 1, 
+                    0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 0),
+                  nrow = 4, ncol = 4, byrow = T)
+
+
+# run simulation ----
+
+iters <- as_tibble(expand.grid(rate = urb.rates,
+                               prop.hab = prop.urban,
+                               iter = c(1:n.iters))) %>% 
+  mutate(parms = purrr::map(iter, draw_parms, N= TRUE)) %>% 
+  unnest()
+
+sim <- iters %>% 
+  mutate(projection = pmap(list(avg, prop.hab, rate, Ninit, K), project_pop)) 
+
+saveRDS(sim, file = "output/Ninit-max-1_K-max-6.rds")
+
+
+pushover("pr boa projection done")
+
+#sim <- readRDS("output/final-projection.rds")
+
+
+Ntot <- sim %>% 
+  select(iter, rate, projection, Ninit, K) %>% 
+  unnest() 
+
+
+
+
+# plot outcomes ----
+
+
+
+# overall probabilities
+probs <- Ntot %>%
+  group_by(Ninit, iter, year) %>% 
+  summarize(N = sum(Ntot)) %>% 
+  ungroup() %>% 
+  group_by(Ninit, iter) %>% 
+  nest() %>% 
+  mutate(lambda = map(data, calc_lambda)) %>% 
+  unnest() %>% 
+  group_by(Ninit, iter) %>% 
+  summarize(inc = ifelse(geo_mean(lambda, N) >= 1, 1, 0),
+            dec = ifelse(geo_mean(lambda, N) < 1, 1, 0),
+            qe_50 = ifelse(any(N < 50), 1, 0),
+            qe_500 = ifelse(any(N < 500), 1, 0),
+            qe_1000 = ifelse(any(N < 1000), 1, 0),
+            qe_5000 = ifelse(any(N < 5000), 1, 0)) %>% 
+  ungroup() %>% 
+  #mutate(Scenario = scenario.labs[scenario]) %>% 
+  group_by(Ninit) %>% 
+  summarize(pext_50 = mean(qe_50),
+            pext_500 = mean(qe_500),
+            pext_1000 = mean(qe_1000),
+            pext_5000 = mean(qe_5000),
+            pinc = mean(inc),
+            pdec = mean(dec))
+probs
+
+probs %>% 
+  gather(threshold, val, 2:5) %>% 
+  filter(val < 0.05) %>% 
+  group_by(threshold) %>% 
+  summarize(N = min(Ninit))
+
+
+# quasi-extinction probability
+qe_plot <- probs %>% 
+  gather(prob, val, 2:5) %>% 
+  mutate(prob = fct_relevel(prob, "pext_50", "pext_500", "pext_1000", "pext_5000")) %>% 
+  ggplot(aes(x = Ninit, y = val, color = prob)) +
+  geom_line(lty = 1, lwd = 1.5) +
+  #geom_path(lty = 2, lwd = 1, position = position_dodge(width = 0.75), alpha = 0.8) +
+  #geom_point(size = 3, position = position_dodge(width = 0.75)) +
+  xlab("Initial (current) population size") +
+  ylab("Quasi-extinction probability") +
+  scale_color_viridis_d(name = "Quasi-extinction threshold",
+                        labels = c(50, 500, 1000, 5000),
+                        option = "D", 
+                        end = 0.8) +
+  theme(legend.position = "top")
+qe_plot
+
+save_plot(qe_plot, file = "output/qe_probs-Ninit.jpg",
+          base_width = 8, base_height = 5)
+
+
+
+### average lambda and percent change in pop size for each scenario ----
+
+pop_change <- Ntot %>% 
+  group_by(iter, rate) %>% 
+  summarize(mean_lam = geo_mean(lambda, Ntot),
+         percent_change = calc_p_change(Ntot)) %>% 
+  ungroup()
+
+pop_change %>% 
+  gather(var, val, 3:4) %>% 
+  group_by(rate, var) %>% 
+  summarize(med = median(val, na.rm = T),
+            lci = quantile(val, 0.025, na.rm = T),
+            uci = quantile(val, 0.975, na.rm = T)) 
+
+  
+ggplot(pop_change, aes(x = mean_lam)) +
+  geom_histogram(col = "gray") +
+  facet_wrap(~rate)
+
+ggplot(pop_change, aes(x = percent_change)) +
+  geom_histogram(col = "gray") +
+  facet_wrap(~rate)
+
+
+Ntot %>% 
+  group_by(rate, iter, year, Ninit, Ntot) %>% 
+  ungroup() %>% 
+  mutate(deltaN = Ntot-Ninit) %>% 
+  group_by(rate, year) %>% 
+  summarize(medN = median(deltaN),
+            lciN = quantile(deltaN, 0.025),
+            uciN = quantile(deltaN, 0.975)) 
+
+  ungroup() %>% 
+  mutate(percent_change = medN - Ninit)

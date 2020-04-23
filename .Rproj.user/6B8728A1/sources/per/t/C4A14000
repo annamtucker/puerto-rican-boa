@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1571759247853.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "902929094",
+    "id" : "C4A14000",
+    "lastKnownWriteTime" : 1574789271,
+    "last_content_update" : 1574789271,
+    "path" : "C:/Users/Anna/Box Sync/other-projects/ssa-200/static/lectures/pr-boa-example.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "27,0",
+        "scrollLine" : "0",
+        "tempName" : "Untitled5"
+    },
+    "relative_order" : 12,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

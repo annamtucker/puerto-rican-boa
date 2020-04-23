@@ -1,0 +1,17 @@
+# exploring pr boa maps and shapefiles
+# april 2019
+
+
+boa <- st_read("gis/PR_BOA.shp")
+str(boa)
+class(boa)
+plot(boa)
+
+pr <- st_read("gis/Municalities.shp")
+plot(pr)
+str(pr)
+
+mapview(pr)
+
+
+# pr gap dataset

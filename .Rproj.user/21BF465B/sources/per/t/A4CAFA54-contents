@@ -1,0 +1,290 @@
+Identification_Information:
+  Citation:
+    Citation_Information:
+      Originator: Puerto Rico GAP Analysis Project (PRGAP)
+      Publication_Date: 2006
+      Publication_Time: Unknown
+      Title: PRGAP Landcover
+      Geospatial_Data_Presentation_Form: remote-sensing image
+      Publication_Information:
+        Publication_Place: R?o Piedras, Puerto Rico
+        Publisher: USDA Forest Service, International Institute of Tropical Forestry   
+  Description:
+    Abstract:
+      Interpretation and classification of recent Landsat TM imagery is a key component of the Gap analysis process. Accurate vertebrate distribution mapping and analysis is only possible if both species-habitat models and habitat maps reflect real relationships and landscape patterns. The Puerto Rican landscape is complex in terms of climate, substrate, topography, and disturbance patterns with strong gradients over short distances. It is also a region rich in biodiversity. The combination of these factors creates a diverse landscape mosaic of habitat types. Three major problems in mapping in tropical areas are:  1) Cloud free imagery of even a single scene is often unavailable for any given date; 2) Spectral signature is insufficient for distinguishing floristically tropical forest types. Species composition can change dramatically with shifts in substrate, elevation, or topographic position with little change in spectral signal, and also spectral signature of the same forest type can vary according to the topography and illumination angle; 3) Vegetation can vary across broad climatic ecotones as well as sharp substrate and topographic boundaries. 
+      We have developed a methodology of image stratification by biogeoclimatic zone and topographic position combined with image spectral analysis to develop the land cover map for Puerto Rico. In order to avoid artificial shifts in land cover class caused by reducing broad ecotones to a sharp boundary, we stratified our landscape along well-defined ecotones with sharp shifts in vegetation visible in Landsat TM imagery and then developed classification methods within these geoclimatically homogeneous landscape units using spectral and topographic data. The methodology involves: 1) Creation of a cloud free composite image; 2) Initial classification of forest, non-forest, urban/barren, and water classes for the island; 3) Stratification by biogeoclimatic zone, classification by one of 9 landscape units using topography and moisture index; 4) classification of land cover using spectral signal and models of vegetation/landscape unit relationships based on literature, expert opinion, and field reconnaissance.
+    Purpose: Interpretation and classification of recent Landsat TM imagery is a key component of the Gap analysis process. Accurate vertebrate distribution mapping and analysis is only possible if both species-habitat models and habitat maps reflect real relationships and landscape patterns.
+    Supplemental_Information: Suggested citation: Suggested Citation: Gould, W., Alarc?n, C., Fevold, B., Jim?nez, M.E., Martinuzzi, S., Potts, G., Sol?rzano, M., and Ventosa, E. 2007. Puerto Rico Gap Analysis Project ? Final Report. USGS, Moscow ID and the USDA FS International Institute of Tropical Forestry, R?o Piedras, PR. 157 pp. and 8 appendices.
+  Time_Period_of_Content:
+    Time_Period_Information:
+      Single_Date/Time:
+        Calendar_Date: November, 2006.
+        Time_of_Day: unknown
+    Currentness_Reference: ground condition
+  Status:
+    Progress: Complete
+    Maintenance_and_Update_Frequency: None planned
+  Spatial_Domain:
+    Bounding_Coordinates:
+      West_Bounding_Coordinate: -67.957335
+      East_Bounding_Coordinate: -65.218506
+      North_Bounding_Coordinate: 18.529654
+      South_Bounding_Coordinate: 17.874067
+  Keywords:
+    Theme:
+      Theme_Keyword: PRGAP
+      Theme_Keyword: Landcover
+  Access_Constraints: For access constraints please contact William Gould. 787-766-5335 ext. 302 or e-mail: wgould@fs.fed.us.
+  Use_Constraints: For use constraints please contact William Gould. 787-766-5335 ext. 302 or e-mail: wgould@fs.fed.us.
+  Point_of_Contact:
+    Contact_Information:
+      Contact_Organization_Primary:
+        Contact_Organization: GIS and Remote Sensing Laboratory. US Forest Service, International Institute of Tropical Forestry.
+        Contact_Person: William Gould, Research Ecologist.
+      Contact_Address:
+        Address_Type: mailing and physical address
+        Address: Jard?n Bot?nico Sur 1201 Calle Ceiba. R?o Piedras.
+        State_or_Province: Puerto Rico
+        Postal_Code: 00926-1119
+      Contact_Voice_Telephone: 787-766-5335 ext.302
+      Contact_Facsimile_Telephone: 787-766-6302
+      Contact_Electronic_Mail_Address: wgould@fs.fed.us
+      Hours_of_Service: 900-1800 hrs.
+  Data_Set_Credit: Puerto Rico GAP Analysis Project. US Forest Service, International Institute of Tropical Forestry.
+  Native_Data_Set_Environment: Microsoft Windows 2000 Version 5.0 (Build 2195) Service Pack 4; ESRI ArcCatalog 9.1.0.780
+Data_Quality_Information:
+  Lineage:
+    Process_Step:
+      Process_Description:
+        We have developed a methodology of image stratification by biogeoclimatic zone and topographic position combined with image spectral analysis to develop the land cover map for Puerto Rico. In order to avoid artificial shifts in land cover class caused by reducing broad ecotones to a sharp boundary, we stratified our landscape along well-defined ecotones with sharp shifts in vegetation visible in Landsat TM imagery and then developed classification methods within these geoclimatically homogeneous landscape units using spectral and topographic data. The methodology involves: 1) Creation of a cloud free composite image; 2) Initial classification of forest, non-forest, urban/barren, and water classes for the island; 3) Stratification by biogeoclimatic zone, classification by one of 9 landscape units using topography and moisture index; 4) classification of land cover using spectral signal and models of vegetation/landscape unit relationships based on literature, expert opinion, and field reconnaissance.
+
+        Cloud and cloud-shadows are a common feature of optical remotely sensed images collected from many parts of the world, particularly in humid and tropical regions such as Puerto Rico. We have developed a semi - automated method to identify and mask clouds and cloud-shadows in Landsat imagery and have developed the most recent cloud and cloud-shadow free composite multitemporal image for Puerto Rico and its adjacent islands, a key component of the Puerto Rico Gap Analysis Project.
+        Our assumption is that clouds and cloud-shadows can be identified in a reference image and they can be replaced with imagery from other dates. Cloud masks were created using Landsat 7 ETM+ bands 1 and 6.  Band 4 and parameters of sun angle, topography, and cloud shadow projection were used for directing and masking cloud-shadows. Methodology was applied to a set of 18 images from 1999 to 2003, the majority from 2000 and 2001, to develop an island wide image that is 96.5% cloud-free. We converted the imagery from radiance to reflectance corrected by Rayleigh to address problems in image mosaicing related to variation in atmospheric conditions. We considered the seasonality of the imagery when choosing reference images and building the mosaic in order to minimize variation in reflectance related to dry or wet season. Finally, we have developed a cloud and cloud-shadow cover index that allows us to monitor the suitability of newly acquired imagery for incorporation into composites, and for analyses of the annual and seasonal variability and spatial distribution of cloud cover for the island. The current image can be updated as new imagery becomes available and is being used for current land cover classifications for the Gap program and for analyses of land cover change, particularly land cover conversion from abandoned agricultural to secondary forest and from vegetated to impervious surfaces. The methodology developed is simple, straightforward, can be used with a variety of remotely sensed data, and useful wherever obtaining cloud free imagery is desirable.
+    Process_Step:
+      Process_Description:
+        PRGAP Landcover classes
+
+        1.	Mature secondary lowland dry alluvial semi deciduous forest: Mature dry forest on alluvial material of the coastal plain.  These remnants are in relatively undisturbed areas are often along riparian corridors along the southern coastal plain. Much of this extensive substrate has been converted to agriculture and pasture. Conditions are somewhat moister than surroundings because of the riparian location. Primarily Bucida buceras (Ucar forest) and Bucida buceras-Prosopis juliflora (Ucar-mesquite) stands (Dansereau 1966) with much variability due to disturbance and the presence of some evergreen tree species including Ceiba pentandra, Hymenaea courbaril, Andira inermis, and Spondia mombin (Lugo 2005).
+        2.	Young secondary lowland dry alluvial semideciduous forest: Young secondary dry forest on alluvial material of the coastal plain.  This is often disturbed by fire and grazing and developed on abandoned pasture. Dense to more open stands of thorn forest Prosopis pallida (mesquite savanna) (Dansereau 1996), Cassia polyphylla and Acacia farnesiana (Lugo 2005), and very variable secondary forests of Albizzia lebbeck, Delonix regia, Pithecelobium dulce, Cassia siamea, Gliricidia sepium and Tamarindus indica (Lugo 2005).
+        3.	Lowland dry alluvial shrubland and woodland: Open forest and shrubland developing on abandoned pasture of the southern coastal plain.  This is often disturbed by fire and grazing. Dense to more open stands of thorn shrubland Prosopis pallida (mesquite savanna) (Dansereau 1996), and Acacia farnesiana with Leucaena leucocephala.
+        4.	Mature secondary lowland dry limestone evergreen forest: Evergreen forests in arroyos, sinkholes and narrow valleys on limestone substrates in the southwestern part of the main island and in the bajuras (sinkholes) of Mona Island.
+        5.	Mature secondary lowland dry limestone semideciduous forest: Mature semideciduous forests on mid and upper slopes of limestone hills on the southwestern part of the Main Island and Caja de Muertos and on the limestone Plateau of Mona Island.
+        6.	Young secondary lowland dry limestone semideciduous forest: Young secondary semideciduous forests on mid and upper slopes of limestone hills on the southwestern part of the main island.  These often on abandoned agricultural land.
+        7.	Lowland dry limestone woodland and shrubland: Open semideciduous forests and shrublands on limestone hills in the southwestern part of the main island, Caja de Muertos, and Mona Island.  These often on abandoned agricultural land or semi active pastures.
+        8.	Lowland dry limestone shrubland: Dense thorny shrublands on limestone substrates in the southwestern part of the island, primarily abandoned pasture, and on the eastern edge of Mona Island, strongly influenced by salt laden winds restricting tree growth.
+        9.	Lowland dry cactus shrubland: Open shrubland with cactus on limestone substrates, often with poor soil development and much exposed bedrock.
+        10.	Coastal dwarf woodland and shrubland: Open forest of dwarfed trees in wind exposed coastal sites on the southwest side of the island, somewhat easterly exposure.  Very old but gnarled and twisted trees with horizontal stem growth on leeward side.  Little soil development and much exposed bedrock.
+        11.	Lowland dry limestone cliffside semideciduous forest; Narrow bands of closed semideciduous forest on limestone cliffs edges and along the base, primarily on Mona Island.
+        12.	Lowland dry limestone cliffside shrubland and woodland: Narrow bands of open semideciduous forest or woodland on limestone cliffs edges and along the base, primarily on Mona Island.
+        13.	Mature secondary lowland dry noncalcareous semideciduous forest: Mature dry forest on substrates derived from volcanic bedrock, these are found on coastal hills in Northeastern Puerto Rico and in the Sierra Bermeja range in Southwestern Puerto Rico.
+        14.	Young secondary lowland dry noncalcareous semideciduous forest: Young secondary dry forest on substrates derived from volcanic bedrock, these are found on coastal hills in Northeastern Puerto Rico and in the Sierra Bermeja range in Southwestern Puerto Rico.  They are typically pastures abandoned in the last 10-30 years.
+        15.	Lowland dry noncalcareous shrubland and woodland: Open dry forest (woodland) and shrubland on substrates derived from volcanic bedrock, these are found on coastal hills in Northeastern Puerto Rico and in the Sierra Bermeja range in Southwestern Puerto Rico.  They are typically recently abandoned or marginally active pastures.
+        16.	Mature secondary dry and moist serpentine semideciduous forest: Mature forests on ultramafic (high pH) serpentine soils in the wetter Maricao and drier Susua area of Puerto Rico.
+        17.	Young secondary dry and moist serpentine semideciduous forest: Young secondary forests on ultramafic (high pH) serpentine soils in the wetter Maricao and drier Susua area of Puerto Rico.
+        18.	Dry and moist serpentine woodland and shrubland: Open forests (woodland) on ultramafic (high pH) serpentine soils in the wetter Maricao and drier Susua area of Puerto Rico.
+        19.	Abandoned dry forest plantation: Abandoned plantations of Casuarina and Swietenia on limestone substrates on Mona Island, primarily on the coastal plain.
+        20.	Mature secondary lowland moist evergreen alluvial forest: Mature lowland moist forests on alluvial material in the northern and eastern coastal plain and lower valleys, often associated with riparian corridors.
+        21.	Young secondary lowland moist evergreen alluvial forest: Young secondary lowland moist forests on alluvial material in the northern and eastern coastal plain and lower valleys often developed on abandoned pasture or former sugar cane fields.
+        22.	Lowland moist alluvium shrubland and woodland: Lowland moist woodland and shrubland on alluvial material in the northern and eastern coastal plain and lower valleys often developed on abandoned or semi active pasture.
+        23.	Mature secondary moist limestone evergreen and semideciduous forest: A matrix of mature forest types occurring along a topographic sequence in the haystack hills or "mogotes" of the northern karst region of Puerto Rico.  These are mature forest types with drier conditions on the ridges and steep slopes and more mesic conditions on lower slopes and valley bottoms.  Much have regenerated on long (> 30 years) abandoned agricultural fields, sugar cane, shade coffee, or pasture.
+        24.	Young secondary moist limestone evergreen and semideciduous forest: A matrix of young secondary forest types occurring along a topographic sequence in the haystack hills or "mogotes" of the northern karst region of Puerto Rico.  These are early successional forest types with drier conditions on the ridges and steep slopes and more mesic conditions on lower slopes and valley bottoms.  Much have regenerated on recently (10-30 years) abandoned agricultural fields, sugar cane, shade coffee, or pasture.
+        25.	Moist limestone shrubland and woodland: Shrubland and woodland in the haystack hills or "mogotes" of the northern karst region of Puerto Rico.  Most are abandoned or semi active pasture.
+        26.	Mature secondary lowland moist evergreen noncalcareous forest: Mature lowland moist forest on substrates primarily derived from volcanic material on the northern coastal plain, lower elevations of the Central and Luquillo Mountains, the Caguas valley, and southeastern Puerto Rico.  These occur primarily on long abandoned (> 30 years) sugar cane, shade coffee, and pasture lands but contain remnants of older lowland moist forests and harbor a majority of native tree species.
+        27.	Young secondary lowland moist evergreen noncalcareous forest: Young secondary lowland moist forest on substrates primarily derived from volcanic material on the northern coastal plain, lower elevations of the Central and Luquillo Mountains, the Caguas valley, and southeastern Puerto Rico.  These occur primarily on recently abandoned (10 - 30 years) pasture lands and have a number of established exotic species.
+        28.	Lowland moist noncalcareous shrubland and woodland: Young secondary lowland moist forest on substrates primarily derived from volcanic material on the northern coastal plain, lower elevations of the Central and Luquillo Mountains, the Caguas valley, and southeastern Puerto Rico.  These occur primarily on recently abandoned or semi active pasture lands.
+        29.	Lowland moist abandoned and active coffee plantations: A mix of active sun coffee plantations and abandoned shade coffee plantations in the lower elevations of the Central Mountains.
+        30.	Mature secondary montane wet evergreen alluvial forest: Mature secondary wet evergreen forests on small patches of alluvial material in the upper Central and Luquillo Mountains.  These are areas with less steep terrain and better soil development, and deeper soils than surrounding volcanic substrates.
+        31.	Young secondary montane wet evergreen alluvial forest: Young secondary wet evergreen forests on small patches of alluvial material in the upper Central and Luquillo Mountains.  These are areas with less steep terrain and better soil development, and deeper soils than surrounding volcanic substrates.  Forests have developed on recently abandoned agricultural lands.
+        32.	Montane wet alluvial shrubland and woodland: Montane wet shrublands and open forests (woodland) on small patches of alluvial material in the upper Central and Luquillo Mountains.  Developing on very recently abandoned agricultural lands.
+        33.	Mature secondary montane wet evergreen noncalcareous forest: Mature secondary wet evergreen forests on volcanic substrates in the upper Central and Cayey Mountains.  These are on areas that were not likely shade coffee but may have had been cleared for other reasons.
+        34.	Mature primary Tabonuco and secondary montane wet noncalcareous evergreen forest: Mature primary Tabonuco forests in the Luquillo Mountains and other mature secondary forests in the Central Mountains.
+        35.	Mature primary Palo Colorado and secondary montane wet noncalcareous evergreen forest: Mature primary Palo Colorado tall cloud forests in the Luquillo Mountains and other mature cloud secondary forests in the Central Mountains.
+        36.	Mature primary Sierra Palm and secondary montane wet noncalcareous evergreen forest: Mature primary Sierra Palm forests in the Luquillo Mountains and other mature secondary forests in the Central Mountains.
+        37.	Mature primary elfin woodland and secondary montane wet noncalcareous evergreen cloud forest: Mature primary elfin woodland in the Luquillo Mountains and other mature secondary cloud forests in the Central Mountains.
+        38.	Young secondary montane wet noncalcareous evergreen forest: Young secondary wet evergreen forests on volcanic substrates in the upper Luquillo, Central, and Cayey Mountains.  Regenerating on recently (10 - 30 years) abandonded pastures.
+        39.	Montane wet shrubland and open woodland on volcanic substrates in the upper Luquillo, Central, and Cayey Mountains.  Regenerating on abandonded or semi active pastures or disturbed areas (landslides, hurricane, and forest clearing).
+        40.	Mature secondary montane wet evergreen serpentine forest
+        41.	Young secondary montane wet evergreen serpentine forest
+        42.	Wet serpentine shrubland and woodland
+        43.	Montane wet evergreen abandoned and active coffee plantation: A mix of active sun coffee plantations and abandoned shade coffee plantations in the upper elevations of the Central Mountains.
+        44.	Mangrove forest and shrubland
+        45.	Freshwater Pterocarpus swamp
+        46.	Lowland dry riparian Forest: Semi deciduous and evergreen forests along the riparian corridors in the Southwestern part of the island.  Often remnants of formerly extensive southern coastal plain forests on alluvial material.  More evergreen species because of greater available moisture along the riparian corridor. Primarily Bucida buceras (Ucar forest) (Dansereau 1966) with Guaiacum officinale, Mastichodendron foetidissimum, Guapira fragrans, Ceiba pentandra, Hymenaea courbaril, Andira inermis, and Spondia mombin (Lugo 2005).
+        47.	Lowland dry riparian shrubland and woodland: Open forest along riparian corridors. Open canopy of semideciduous and evergreen tree species and shrub or open understory. Composition variable.
+        48.	Dry grasslands and pastures
+        49.	Dry cactus grassland and shrubland
+        50.	Moist grasslands and pastures
+        51.	Emergent herbaceous nonsaline wetlands
+        52.	Emergent herbaceous saline wetlands
+        53.	Seasonally flooded herbaceous nonsaline wetlands
+        54.	Seasonally flooded herbaceous saline wetlands
+        55.	Hay and row crops: Hay crops, pineapple, bananas, plantains, or other herbaceous row crops.
+        56.	Woody agriculture and plantations, Palm plantations: Coconut plantations.
+        57.	Rocky cliffs and shelves: Coastal cliffs and rocky shelves and shorelines in the intertidal and supratidal zones. Typically < 20% vegetation cover, vegetation halophytic.  Often periodically flooded with storm surge. Primarily unvegetated with subpixel elements of Fucus spp. and Turbinaria turbinata (fucoid mats), Rhizophora mangle (red mangrove scrub), Avicennia germinans (black mangrove scrub), Fimbristylis spadicea (salt sedge desert), Euphoria buxifolia (spurge sedge mat), Suriana maritima (bay-cedar steppe), Suriana maritima-Gundlachia corymbosa (bay cedar-horse bush scrub), Conocarpus erecta (button mangrove mats) Opuntia rubescens-Conocarpus erecta-Cephalocoerus royeni (high button-mangrove-cactus scrub).
+        58.	Gravel beaches and stony shoreline: Stoney and gravelly shorelines in the intertidal and supratidal zones along the coast. Typically < 20% vegetation cover, vegetation halophytic.  Often periodically flooded with storm surge. Primarily unvegetated with subpixel elements of Sesuvium portulacastrum (sea purslane mats), Sporobolus virginicus (beach grass sward), Ipomea pes-caprea (morning glory), and Coccoloba uvifera (sea grape scrub) (Dansereau 1996).
+        59.	Fine to coarse sandy beaches, mixed sand and gravel beaches: Fine to coarse sandy beaches, mixed sand and gravel beaches in the intertidal and supratidal zones along the coast.  Typically < 20% vegetation cover, vegetation halophytic.  Often periodically flooded with storm surge.  Some beaches subject to artificial maintenance. Primarily unvegetated with subpixel elements of or adjacent to Cocos nucifera (coconut palm), Spartina patens (salt grass steppe), Cakile lanceolata (sea rocket strip), Sesuvium portulacastrum (sea purslane mats), Sporobolus virginicus (beach grass sward), Ipomea pes-caprea (morning glory), and Coccoloba uvifera (sea grape scrub) (Dansereau 1996).
+        60.	Riparian and other natural barrens: Typically < 20% vegetation cover, often periodically flooded if riparian. Primarily unvegetated gravel bars and riparian mudflats. (Dansereau 1966).
+        61.	Salt and mudflats: Typically < 20% vegetation cover, often periodically flooded.  Salt flats in low-lying coastal areas seasonally flooded with brackish water, part of a mangrove habitat complex when associated with mangrove trees. Primarily unvegetated salty low-lying areas in the littoral zone. May contain subpixel elements of Salicournia bigelowii (glasswort), Achrostichum aureum and A. danaefolium (salt fern), and Rhizophora mangle (red mangrove), Avicennia germinans (black mangrove), and Laguncularia racemosa (white mangrove) (Dansereau 1966).
+        62.	Commercial salt production: Commercial salt production.
+        63.	High-density urban development: Developed pixels that exist within a matrix of > 20% developed pixels (< 80% vegetated, water or natural barrens) within a 1 km2 area surrounding each pixel (Martinuzzi et al 2006). Primarily unvegetated but may contain subpixel elements of gardens, lawns, or weedy vegetation that can be exploited as habitat. Typically surrounded by developed landscapes.
+        64.	Low-density urban development: Developed pixels that exist within a matrix of < 20% developed pixels (> 80% vegetated, water or natural barrens) within a 1 km2 area surrounding each pixel (Martinuzzi et al 2006). Primarily unvegetated but may contain subpixel elements of gardens, lawns, or weedy vegetation that can be exploited as habitat.  Typically surrounded by adjacent vegetation.
+        65.	Artificial barrens: Recent developments cleared for construction (ephemeral, likely to have changed within recent years), landfills, and quarries. Primarily unvegetated but may contain subpixel elements of weedy vegetation that can be exploited as habitat.
+        66.	Freshwater: Lakes, ponds and rivers that are detectable in land sat imagery.  A number of small streams, small ponds, and ephemeral ponds and streams are not included. Primarily unvegetated freshwater but may contain subpixel elements of submerged, floating, or seasonally emergent vegetation including Lemna perpusilla (duckweed), Nymphaea ampla (water lily) and Pistia stratiotes (water-lettuce) mats (Dansereau 1966).
+        67.	Salt water: Coastal lagoons, brackish canals, and estuaries.  Often bordered by mangrove and mudflats. These for part of the mangrove habitat complex when adjacent to mangroves. Primarily unvegetated brackish water but may contain subpixel elements of submerged vegetation including algal crusts dominated by Enteromorpha spp., algal mats dominated by Ulva lactea, Fucus spp. and Turbinaria turbinata in fucoid mats, or beds of Thalassia testudinum (turtle grass) (Dansereau 1966).
+        68.	Lowland moist riparian Forest: Riparian forests along rivers in the northern and eastern coastal plain, either relicts of formerly extensive forests or more commonly regenerate forests on abandoned agricultural land.
+        69.	Lowland moist riparian shrubland and woodland: Riparian woodland and shrubland along rivers in the northern and eastern coastal plain, either relicts of formerly extensive forests or more commonly regenerate forests on abandoned or semi active pastures.
+        70.	Aquiculture: Shrimp farms. Unvegetated.
+Spatial_Data_Organization_Information:
+  Direct_Spatial_Reference_Method: Raster
+  Raster_Object_Information:
+    Raster_Object_Type: Pixel
+    Row_Count: 4793
+    Column_Count: 19279
+    Vertical_Count: 1
+Spatial_Reference_Information:
+  Horizontal_Coordinate_System_Definition:
+    Planar:
+      Map_Projection:
+        Map_Projection_Name: Lambert Conformal Conic
+        Lambert_Conformal_Conic:
+          Standard_Parallel: 18.033333
+          Standard_Parallel: 18.433333
+          Longitude_of_Central_Meridian: -66.433333
+          Latitude_of_Projection_Origin: 17.833333
+          False_Easting: 200000.000000
+          False_Northing: 200000.000000
+      Planar_Coordinate_Information:
+        Planar_Coordinate_Encoding_Method: row and column
+        Coordinate_Representation:
+          Abscissa_Resolution: 15
+          Ordinate_Resolution: 15
+        Planar_Distance_Units: meters
+    Geodetic_Model:
+      Horizontal_Datum_Name: North American Datum of 1983
+      Ellipsoid_Name: Geodetic Reference System 80
+      Semi-major_Axis: 6378137.000000
+      Denominator_of_Flattening_Ratio: 298.257222
+Entity_and_Attribute_Information:
+  Detailed_Description:
+    Entity_Type:
+      Entity_Type_Label: Layer_1
+    Attribute:
+      Attribute_Label: ObjectID
+      Attribute_Definition: Internal feature number.
+      Attribute_Definition_Source: ESRI
+      Attribute_Domain_Values:
+        Unrepresentable_Domain: Sequential unique whole numbers that are automatically generated.
+    Attribute:
+      Attribute_Label: Value
+      Attribute_Definition: A number assigned to each specific land cover class or type in the Puerto Rico land cover grid.
+    Attribute:
+      Attribute_Label: Count
+      Attribute_Definition: Number of pixels of each land cover type.
+    Attribute:
+      Attribute_Label: Grid_Value
+      Attribute_Definition: A number assigned to each specific land cover class or type in the Puerto Rico land cover grid.    
+    Attribute:
+      Attribute_Label: Comb_Value
+      Attribute_Definition: A number assigned to each specific land cover class or type so that all GAP land cover products have a unique number Puerto Rico classes covr 901-970 in this system .    
+    Attribute:
+      Attribute_Label: Red
+    Attribute:
+      Attribute_Label: Green
+    Attribute:
+      Attribute_Label: Blue
+    Attribute:
+      Attribute_Label: PRGAP_CL
+      Attribute_Definition: Land cover types developed by Puerto Rico GAP
+    Attribute:
+      Attribute_Label: CL
+      Attribute_Definition: A Number designating the draft National Vegetation Classification (NVC) Class.
+    Attribute:
+      Attribute_Label: NVC_Class
+      Attribute_Definition: Textual description of the draft National Vegetation Classification (NVC) Class. 
+    Attribute:
+      Attribute_Label: SC
+      Attribute_Definition: A Code designating the draft National Vegetation Classification (NVC) Subclass.
+    Attribute:
+      Attribute_Label: NVC_Subcl
+      Attribute_Definition: Textual description of the draft National Vegetation Classification (NVC) Subclass.
+    Attribute:
+      Attribute_Label: FRM
+      Attribute_Definition: A Code designating the draft National Vegetation Classification (NVC) Formation.
+    Attribute:
+      Attribute_Label: NVC_FRM
+      Attribute_Definition: Textual description of the draft National Vegetation Classification (NVC) Formation.
+    Attribute:
+      Attribute_Label: DIV
+      Attribute_Definition: A Code designating the draft National Vegetation Classification (NVC) Division.
+    Attribute:
+      Attribute_Label: NVC_DIV
+      Attribute_Definition: Textual description of the draft National Vegetation Classification (NVC) Division.
+    Attribute:
+      Attribute_Label: Macro_CD
+      Attribute_Definition: A Code designating the draft National Vegetation Classification (NVC) Macrogroup.
+    Attribute:
+      Attribute_Label: NVC_Macro
+      Attribute_Definition: Textual description of the draft National Vegetation Classification (NVC) Macrogroup.
+    Attribute:
+      Attribute_Label: Group
+      Attribute_Definition: A Code designating the draft National Vegetation Classification (NVC) Group.
+    Attribute:
+      Attribute_Label: NVC_Group
+      Attribute_Definition: Textual description of the draft National Vegetation Classification (NVC) Group.
+
+Distribution_Information:
+  Distributor:
+    Contact_Information:
+      Contact_Organization_Primary:
+        Contact_Organization: US Forest Service, International Institute of Tropical Forestry
+        Contact_Person: William Gould, Research Ecologist
+      Contact_Address:
+        Address_Type: mailing and physical address
+        Address: International Institute of Tropical Forestry. 1201 Calle Ceiba, Jard?n Bot?nico Sur
+        City: R?o Piedras
+        State_or_Province: PR
+        Postal_Code: 00926-1119
+        Country: Puerto Rico
+      Contact_Voice_Telephone: (787) 766-5335 Ext. 302
+      Contact_Facsimile_Telephone: (787) 766-6302
+      Contact_Electronic_Mail_Address: wgould@fs.fed.us
+      Hours_of_Service: 900 - 1800 hrs.
+  Resource_Description: Contact William Gould for more information. Phone (787) 766-5335 or e-mail: wgould@fs.fed.us
+  Standard_Order_Process:
+    Digital_Form:
+      Digital_Transfer_Information:
+        Format_Name: ERDAS
+        Format_Version_Date: November 03, 2006.
+        Format_Specification: This landcover was developed using ERDAS IMAGINE 8.7.
+        Format_Information_Content: This raster dataset represent the landcover for Puerto Rico and it's adjacent islands.
+        File_Decompression_Technique: no compression applied
+        Transfer_Size: 0.000
+  Available_Time_Period:
+    Time_Period_Information:
+      Single_Date/Time:
+        Calendar_Date: All year
+        Time_of_Day: 900 - 1800 hrs.
+Metadata_Reference_Information:
+  Metadata_Date: 20070425
+  Metadata_Review_Date: November 03, 2006.
+  Metadata_Contact:
+    Contact_Information:
+      Contact_Organization_Primary:
+        Contact_Organization: US Forest Service, International Institute of Tropical Forestry.
+        Contact_Person: Michael E. Jim?nez, Cartographic Technician
+      Contact_Address:
+        Address_Type: mailing and physical address
+        Address: 1201 Calle Ceiba, Jard?n Bot?nico Sur. R?o Piedras
+        City: REQUIRED: The city of the address.
+        State_or_Province: Puerto Rico
+        Postal_Code: 00926-1119
+      Contact_Voice_Telephone: 787-766-5335 ext.334
+      Contact_Facsimile_Telephone: 787-766-6302
+      Contact_Electronic_Mail_Address: mejimenez@fs.fed.us
+      Hours_of_Service: 900-1800 hrs.
+  Metadata_Standard_Name: FGDC Content Standards for Digital Geospatial Metadata
+  Metadata_Standard_Version: FGDC-STD-001-1998
+  Metadata_Time_Convention: local time
+  Metadata_Extensions:
+    Online_Linkage: http://www.esri.com/metadata/esriprof80.html
+    Profile_Name: ESRI Metadata Profile

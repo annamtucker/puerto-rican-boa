@@ -1,0 +1,66 @@
+# functions used in demographic projeciton 
+# 15 april 2019
+
+# beta distribution ----
+
+beta_shape_parms = function(mean, sd){
+  avg = mean
+  var = sd*sd
+  
+  a = ifelse(var < avg*(1-avg), avg*(((avg*(1-avg))/var)-1), 100*avg)
+  b = ifelse(var < avg*(1-avg), (1-avg)*(((avg*(1-avg))/var)-1), 100*(1-avg))
+  
+  return(list(a = a, b = b))
+}
+
+get_beta_vals = function(n, mean, sd){
+  x = beta_shape_parms(mean, sd)
+  rbeta(n, x$a, x$b)
+}
+
+# project population ----
+project_pop = function(mat, temp_cv, Ninit, n.years){
+  
+  # start each population at stable stage distribution
+  dist = eigen.analysis(mat)$stable.stage
+  N = matrix(nrow = 4, ncol = n.years)
+  N[,1] = round(Ninit*dist)
+  
+  # temporal variability in survival
+  sd = temp_cv*mat
+  arr = array(0, dim = c(4, 4, n.years))
+  for(i in 1:4){
+    for(j in 1:4){
+      arr[i,j,] <- get_beta_vals(n = n.years, mat[i,j], sd[i,j])
+    }
+  }
+  
+  # temporal variability in fecundity
+  for(j in c(3,4)){
+    arr[1,j,] <- rpois(n.years, mat[1,j])
+  }
+  
+  
+  for(i in 2:n.years){
+    N[,i] = round(arr[,,i] %*% N[,i-1])
+  }
+  
+  return(N)
+}
+
+# parametric uncertainty ---- 
+draw_rates = function(avg_mat, para_cv){
+  sd = para_cv*mat
+  new_mat = matrix(0, nrow = 4, ncol = 4)
+  for(i in 1:4){
+    for(j in 1:4){
+      arr[i,j] <- get_beta_vals(1, mat[i,j], sd[i,j])
+    }
+  }
+  
+  for(j in c(3,4)){
+    arr[1,j,] <- rpois(n.years, mat[1,j])
+  }
+  return(arr)
+}
+

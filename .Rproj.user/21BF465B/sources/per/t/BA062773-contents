@@ -1,0 +1,248 @@
+# demographic projection without loops
+# 16 april 2019
+
+source("scripts/packages-functions.R")
+source("scripts/projection-functions-2.R")
+
+# simulation parameters ----
+n.iters = 10000               # for parametric uncertainty
+n.reps = 1                    # replicates of each parameter draw
+n.years = 30                  # number of years to project 
+n.habs = 2
+
+# scenarios 
+prop.urban = 0.43
+habitat.area = 379029
+urb.rates = c(0, 0.008, 0.016, 0.024)  # rate of urban growth per year
+
+
+# demographic parameters ----
+
+# initial population size
+Ninit.min = habitat.area*0.1
+Ninit.max =  habitat.area*0.5
+
+# maximum population size
+K.min = habitat.area*1
+K.max = habitat.area*3
+
+# demographic rate CVs
+para.cv = 0.15
+temp.cv = 0.15
+
+# adjustment on average demographic rates for urban habitats
+urban = c(0.5, 1)
+
+# survival rates
+young.surv = 0.3
+juv.surv = 0.9
+subad.surv = 0.72
+ad.surv = 0.9
+
+# growth rates
+yj = 0.9
+js = 0.5
+sa = 0.25
+
+# fecundity and breeding propensity of subadults
+f = 9*0.5
+subad.bp = 2/9
+max.fec = 35
+
+# matrix parameters
+T.YY = young.surv * (1-yj)
+T.JY = young.surv * yj
+T.JJ = juv.surv * (1-js)
+T.SJ = juv.surv * js
+T.SS = subad.surv * (1-sa)
+T.AS = subad.surv * sa
+T.AA = ad.surv
+F.SY = f * subad.bp * young.surv
+F.AY = f * young.surv
+
+
+avg.mat = matrix(c(T.YY, 0, F.SY, F.AY,
+               T.JY, T.JJ, 0, 0,
+               0, T.SJ, T.SS, 0,
+               0, 0, T.AS, T.AA),
+             nrow = 4, ncol = 4, byrow = T)
+
+# parametric uncertainty SD
+para.sd.mat = avg.mat*para.cv
+
+# manually change sd for subad fecundity (less than 1 otherwise and leads to error)
+para.sd.mat[1,c(3,4)] <- f*para.cv
+
+# to isolate survival rates only
+surv.mask = matrix(c(1, 0, 0, 0,
+                     1, 1, 0, 0,
+                     0, 1, 1, 0,
+                     0, 0, 1, 1),
+                   nrow = 4, ncol = 4, byrow = T)
+
+# to isolate fecundities only
+fec.mask = matrix(c(0, 0, 1, 1, 
+                    0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 0),
+                  nrow = 4, ncol = 4, byrow = T)
+
+
+# run simulation ----
+
+iters <- as_tibble(expand.grid(rate = urb.rates,
+                               prop.hab = prop.urban,
+                               iter = c(1:n.iters))) %>% 
+  mutate(parms = purrr::map(iter, draw_parms)) %>% 
+  unnest()
+
+sim <- iters %>% 
+  mutate(projection = pmap(list(avg, prop.hab, rate, Ninit, K), project_pop)) 
+ 
+Ntot <- sim %>% 
+  select(iter, rate, projection, Ninit, K) %>% 
+  unnest() 
+
+saveRDS(sim, file = "output/projection_reduce-urban-rates.rds")
+
+pushover("done")
+
+
+# plot outcomes ----
+
+percent = gsub(" ", "", paste(urb.rates*1000, "%"))
+
+scenario.labs = sapply(percent, FUN = function(x) paste(x, "urban growth\nper decade"))
+
+labels <- tibble(rate = urb.rates,
+                scenario = scenario.labs) %>% 
+  mutate(scenario = fct_reorder(scenario, rate))
+
+# population size over time
+Nplot <- Ntot %>% 
+  full_join(labels) %>% 
+  group_by(scenario, iter, year, Ninit) %>% 
+  summarize(Ntot = sum(Ntot)) %>% 
+  ungroup() %>% 
+  mutate(deltaN = Ntot-Ninit) %>% 
+  group_by(scenario, year) %>% 
+  summarize(medN = median(deltaN),
+            lciN = quantile(deltaN, 0.025),
+            uciN = quantile(deltaN, 0.975)) %>% 
+  ungroup() %>% 
+  #mutate(scenariolab = scenario.labs[scenario]) %>% 
+  ggplot(aes(x = year, y = medN/1000000)) +
+  geom_ribbon(aes(ymin = lciN/1000000, ymax = uciN/1000000), fill = "gray80", alpha = 0.7) +
+  geom_line(lwd = 1.5) +
+  geom_hline(yintercept = 0, lty = 2) +
+  ylab("Change in population size\n(millions)") +
+  xlab("Year") +
+  scale_x_continuous(breaks = seq(0, 30, 5), limits = c(1, 30)) +
+  facet_wrap(~scenario, scales = "free") +
+  scale_y_continuous(limits = c(NA, 1.2)) +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 14, margin = margin(2,2,2,2)),
+        panel.spacing = unit(2, "lines"))
+
+Nplot
+
+save_plot(Nplot, file = "output/projection__new-hab.jpg", base_width = 10, base_height = 8)
+
+
+
+# lambda
+Ntot %>% 
+  group_by(scenario, iter, year) %>% 
+  summarize(N = sum(Ntot)) %>% 
+  ungroup() %>% 
+  group_by(scenario, iter) %>% 
+  nest() %>% 
+  mutate(lambda = map(data, calc_lambda)) %>% 
+  unnest() %>% 
+  ungroup() %>% 
+  group_by(scenario, year) %>% 
+  summarize(medlam = median(lambda, na.rm = T),
+            lcilam = quantile(lambda, 0.025, na.rm = T),
+            ucilam = quantile(lambda, 0.975, na.rm = T)) %>% 
+  ungroup() %>% 
+  mutate(scenariolab = scenario.labs[scenario]) %>% 
+  ggplot(aes(x = year, y = medlam)) +
+  geom_ribbon(aes(ymin = lcilam, ymax = ucilam), fill = "gray80", alpha = 0.7) +
+  geom_line(lwd = 1) +
+  geom_hline(yintercept = 1, lty = 2) +
+  ylab("Population growth rate (\u03bb)") +
+  xlab("Year") +  
+  facet_wrap(~scenariolab, scales = "free") +
+  scale_y_continuous(limits = c(0, 5)) +
+  scale_x_continuous(breaks = seq(0, 30, 5), limits = c(1, 30)) +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(margin = margin(2,2,2,2))) 
+
+
+# overall probabilities
+probs <- Ntot %>%
+  rename(scenario = rate) %>% 
+  group_by(scenario, iter, year) %>% 
+  summarize(N = sum(Ntot)) %>% 
+  ungroup() %>% 
+  group_by(scenario, iter) %>% 
+  nest() %>% 
+  mutate(lambda = map(data, calc_lambda)) %>% 
+  unnest() %>% 
+  group_by(scenario, iter) %>% 
+  summarize(inc = ifelse(geo_mean(lambda, N) >= 1, 1, 0),
+            dec = ifelse(geo_mean(lambda, N) < 1, 1, 0),
+            qe_50 = ifelse(any(N < 50), 1, 0),
+            qe_500 = ifelse(any(N < 500), 1, 0),
+            qe_1000 = ifelse(any(N < 1000), 1, 0),
+            qe_5000 = ifelse(any(N < 5000), 1, 0)) %>% 
+  ungroup() %>% 
+  #mutate(Scenario = scenario.labs[scenario]) %>% 
+  group_by(scenario) %>% 
+  summarize(pext_50 = mean(qe_50),
+            pext_500 = mean(qe_500),
+            pext_1000 = mean(qe_1000),
+            pext_5000 = mean(qe_5000),
+            pinc = mean(inc),
+            pdec = mean(dec))
+probs
+
+write_csv(probs, "output/scenario_probabilities_new-hab.csv")
+   
+qe_plot <- probs %>% 
+  gather(prob, val, 2:5) %>% 
+  mutate(prob = fct_relevel(prob, "pext_50", "pext_500", "pext_1000", "pext_5000")) %>% 
+  ggplot(aes(x = scenario*1000, y = val, color = prob)) +
+  geom_path(lty = 2, lwd = 1, position = position_dodge(width = 0.75), alpha = 0.8) +
+  geom_point(size = 3, position = position_dodge(width = 0.75)) +
+  xlab("Urbanization rate (% growth per decade)") +
+  ylab("Quasi-extinction probability") +
+  scale_x_continuous(breaks = c(0, 8, 16, 24)) +
+  scale_color_viridis_d(name = "Quasi-extinction threshold",
+                        labels = c(50, 500, 1000, 5000),
+                        option = "D", 
+                        end = 0.8) +
+  theme(legend.position = "top")
+qe_plot
+
+save_plot(qe_plot, file = "output/qe_probs_new-hab.jpg",
+          base_width = 8, base_height = 5)
+
+
+lam_plot <- probs %>% 
+  gather(prob, val, 6:7) %>% 
+  ggplot(aes(x = scenario*1000, y = val, color = prob)) +
+  geom_path(lty = 2, lwd = 1, alpha = 0.8) +
+  geom_point(size = 3) +
+  xlab("Urbanization rate (% growth per decade)") +
+  ylab("Probability") +
+  ylim(0, 1) +
+  scale_x_continuous(breaks = c(0, 8, 16, 24)) +
+  scale_color_viridis_d(name = "",
+                        labels = c("Population decline", "Population growth"),
+                        option = "D", 
+                        end = 0.8) +
+  theme(legend.position = "top")
+
+save_plot(lam_plot, file = "output/lam_probs.jpg",
+          base_width = 8, base_height = 5)

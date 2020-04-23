@@ -1,0 +1,96 @@
+library(tidyverse)
+library(cowplot)
+theme_set(theme_cowplot())
+
+
+beta_shape_parms = function(mean, sd){
+  avg = mean
+  var = sd*sd
+  
+  #a = ifelse(var < avg*(1-avg), avg*(((avg*(1-avg))/var)-1), 100*avg)
+  #b = ifelse(var < avg*(1-avg), (1-avg)*(((avg*(1-avg))/var)-1), 100*(1-avg))
+  
+  a = 100*avg
+  b = 100*(1-avg)
+  
+  return(list(a = a, b = b))
+}
+
+get_beta_vals = function(n, mean, sd){
+  x = beta_shape_parms(mean, sd)
+  rbeta(n, x$a, x$b)
+}
+
+para.cv = 0.15
+
+# survival rates
+young.surv = 0.3
+juv.surv = 0.9
+subad.surv = 0.72
+ad.surv = 0.9
+
+# growth rates
+yj = 0.67
+js = 0.5
+sa = 0.25
+
+# fecundity and breeding propensity of subadults
+f = 9
+subad.bp = 2/9
+max.fec = 35
+
+# matrix parameters
+T.YY = young.surv * (1-yj)
+T.JY = young.surv * yj
+T.JJ = juv.surv * (1-js)
+T.SJ = juv.surv * js
+T.SS = subad.surv * (1-sa)
+T.AS = subad.surv * sa
+T.AA = ad.surv
+F.SY = f * subad.bp * T.YY
+F.AY = f * T.YY
+F.SJ = f * subad.bp * T.JY
+F.AJ = f * T.JY
+
+avg.mat = matrix(c(T.YY, 0, F.SY, F.AY,
+                   T.JY, T.JJ, 0, 0,
+                   0, T.SJ, T.SS, 0,
+                   0, 0, T.AS, T.AA),
+                 nrow = 4, ncol = 4, byrow = T)
+
+# parametric uncertainty SD
+para.sd.mat = avg.mat*para.cv
+
+# manually change sd for subad fecundity (less than 1 otherwise and leads to error)
+para.sd.mat[c(1,2),c(3,4)] <- f*para.cv
+
+draw_vals = function(avg, sd, dist){
+  if(dist == "beta"){
+    x = get_beta_vals(10000, avg, sd)
+  }
+  if(dist == "lognormal"){
+    x = rlnorm(10000, log(avg), sd)
+  }
+  return(x)
+}
+
+
+tibble(avg = c(avg.mat), 
+       sd = c(para.sd.mat),
+       parameter = c("T.YY", "T.JY", NA, NA, NA, "T.JJ", "T.SJ", NA,
+                     "F.SY", "F.SJ", "T.SS", "T.AS", "F.AY", "F.SJ", NA, "T.AA")) %>% 
+  filter(!is.na(parameter)) %>% 
+  mutate(dist = ifelse(str_detect(parameter, "F"), "lognormal", "beta"),
+         draws = pmap(list(avg, sd, dist), draw_vals)) %>% 
+  unnest() %>% 
+  ggplot(aes(x = draws)) +
+  geom_density(fill = "gray80") +
+  facet_wrap(~parameter, scales = "free") +
+  xlab("parameter value") +
+  geom_vline(aes(xintercept = avg), lty = 2, lwd = 1)
+  
+
+
+
+exp = expression(y = n0*exp(r*t))
+log = expression(y = )

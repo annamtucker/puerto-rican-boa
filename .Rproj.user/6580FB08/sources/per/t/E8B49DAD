@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1587659346353.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1356640911",
+    "id" : "E8B49DAD",
+    "lastKnownWriteTime" : 1578761058,
+    "last_content_update" : 1578761058,
+    "path" : "D:/puerto-rican-boa/scripts/sensitivity.R",
+    "project_path" : "scripts/sensitivity.R",
+    "properties" : {
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

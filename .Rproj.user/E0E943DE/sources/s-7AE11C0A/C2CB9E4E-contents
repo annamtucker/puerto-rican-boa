@@ -1,0 +1,156 @@
+---
+title: "demographic rate sensitivity"
+author: "Anna Tucker"
+date: "May 22, 2019"
+output: pdf_document
+---
+
+### evaluating the sensitivity of model outcomes to input demographic rates
+
+```{r}
+library(tidyverse)
+library(cowplot)
+```
+
+Reran population projection for 5 scenarios, varying one demographic rate in each scenario following the ranges:  
+- fecundity: 1-35  
+- young survival: 0.1-0.9  
+- juvenile survival: 0.1-0.9  
+- subadult survival: 0.1-0.9  
+- adult survival: 0.1-0.9   
+  
+Drew for each scenario, drew 1000 random values for the parameter being varied (holding all other parameter values constant at values used in previous projection), and replicated the projections 100 times each.  
+  
+```{r}
+# 2 - one parm varies per iteration
+# 3 - all parms vary each iteration
+sim <- readRDS("output/parm-sens-all-4_1000-100.rds")
+
+res <- sim %>% 
+  select(iter, fec, young.surv, juv.surv, subad.surv, ad.surv, Ninit, projection) %>% 
+  unnest() %>% 
+  filter(stage == 5) 
+
+res.final <- res %>% 
+  filter(year == max(year))
+```
+
+```{r}
+calc_lambda = function(x){
+  N = x$Ninit + x$deltaN
+  lam = N[2:length(N)]/N[1:(length(N)-1)]
+  return(c(lam, NA))
+}
+
+geo_mean = function(x, qe){
+  if(sum(qe) > 0){
+    ext = min(which(is.na(x)))
+    y = x[1:(ext-2)]
+  } else y = x[1:(length(x)-1)]
+  
+  n = length(y)
+  z = prod(y)
+  z^(1/n)
+}
+```
+
+
+```{r}
+res.lam <- res %>% 
+  group_by(iter) %>% 
+  nest() %>% 
+  mutate(lambda = map(data, calc_lambda)) %>% 
+  unnest() %>% 
+  ungroup()
+```
+
+
+```{r}
+# res.proj <- res.final %>% 
+#   group_by(id) %>% 
+#   summarize(mean.change = mean(deltaN),
+#             p.ext = mean(qe))
+
+res.all <- res.lam %>% 
+  group_by(iter) %>% 
+  summarize(mean.lambda = geo_mean(lambda, qe)) %>% 
+  ungroup() 
+```
+
+```{r}
+res.final %>% 
+  full_join(res.all) %>% 
+  gather(parameter, val, 2:6) %>% 
+  ggplot(aes(x = val, y = mean.lambda)) +
+  geom_point(alpha = 0.01) +
+  facet_wrap(~parameter, scales = "free")
+```
+
+```{r}
+res.final %>% 
+  full_join(res.all) %>% 
+  gather(parameter, val, 2:6) %>% 
+  filter(str_detect(parameter, "surv")) %>% 
+  mutate(bin = cut_interval(val, length = 0.05)) %>% 
+  group_by(parameter, bin) %>% 
+  summarize(lcl = quantile(mean.lambda, 0.025, na.rm = T),
+            med = median(mean.lambda, na.rm = T),
+            ucl = quantile(mean.lambda, 0.975, na.rm = T)) %>% 
+  mutate(bin.lab = seq(0.025, 0.975, by = 0.05)) %>% 
+  ungroup() %>% 
+  mutate(parameter = fct_relevel(c("fec" = "Fecundity", "young.surv" = "Young Survival",
+                       "juv.surv" = "Juvenile Survival", "subad.surv" = "Subadult Survival",
+                       "ad.surv" = "Adult Survival")[parameter],
+                       c("Fecundity", "Young Survival","Juvenile Survival", 
+                         "Subadult Survival", "Adult Survival"))) %>% 
+  ggplot(aes(x = bin.lab)) +
+  geom_ribbon(aes(ymin = lcl, ymax = ucl), fill = "gray80", alpha = 0.6) +
+  geom_line(aes(y = med), lwd = 1) +
+# 
+#   geom_linerange(aes(ymin = lcl, ymax = ucl)) +
+#   geom_point(aes(y = med), size = 2) +
+  geom_hline(yintercept = 1, lty = 2) +
+  xlab("Survival probability") +
+  ylab("Average annual population growth rate") +
+  facet_wrap(~parameter) +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(margin = margin(1,1,1,1)))
+```
+
+```{r}
+res.mod <- res.final %>% 
+  full_join(res.all) 
+  
+  # gather(parm, val, c(1:5, 7)) %>% 
+  # group_by(parm) %>% 
+  # mutate(val_sc = (val-mean(val,na.rm = T))/sd(val,na.rm = T)) %>% 
+  # ungroup() %>% 
+  # select(-val) %>% 
+  # spread(parm, val_sc)
+
+lam.mod <- lm(mean.lambda ~ fec + young.surv + juv.surv + subad.surv + ad.surv - 1, data = res.mod)
+summary(lam.mod)
+```
+
+What value of adult survival would be needed for the population to most likely be declining?
+
+
+
+```{r}
+res.final %>% 
+  filter(parm == "ad.surv") %>% 
+  mutate(bin = cut_interval(ad.surv, length = 0.05)) %>% 
+  group_by(bin) %>% 
+  summarize(p.ext = mean(qe)) %>%
+  ungroup() %>% 
+  mutate(bin.lab = seq(0.125, 0.875, by = 0.05)) %>% 
+  ggplot(aes(x = bin.lab, y = p.ext)) +
+  #geom_point(size = 2) +
+  geom_line(lwd = 1) +
+  xlab("Adult survival probability") +
+  ylab("Quasi-extinction probability \n (Initial N = 15,000)") +
+  geom_hline(yintercept = 0.05, lty = 2) +
+  scale_x_continuous(breaks = seq(0.1, 0.9, 0.1)) +
+  ylim(0, 1)
+```
+

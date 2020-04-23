@@ -1,0 +1,264 @@
+### sensitivity redux
+
+# adult survival ----
+res <- readRDS("output/sensitivity_AS_new.rds")
+names(res) <- c("f", "young.surv", "juv.surv", "subad.surv", "ad.surv", "Ntot")
+str(res)
+
+qe.threshold= 5000
+
+N <- res$Ntot
+inc <- matrix(NA, nrow = dim(N)[1], ncol = dim(N)[2])
+ext <- matrix(NA, nrow = dim(N)[1], ncol = dim(N)[2])
+
+pinc <- numeric(dim(N)[1])
+pext <- numeric(dim(N)[1])
+
+for(i in 1:dim(N)[1]){
+  for(r in 1:dim(N)[2]){
+    inc[i,r] <- ifelse(N[i,r,30] >= N[i,r,1], 1, 0)
+    ext[i,r] <- ifelse(N[i,r,30] < qe.threshold, 1, 0)
+  }
+  pinc[i] <- mean(inc[i,])
+  pext[i] <- mean(ext[i,])
+}
+
+as <- data.frame(ad.surv = res$ad.surv, pinc = pinc, pext = pext) %>% 
+  gather(type, val, 2:3) %>% 
+  mutate(typelab = c("pext" = "Quasi-extinction (<5000 individuals)",
+                     "pinc" = "Stability or growth")[type]) %>% 
+  ggplot(aes(x = ad.surv, y = val)) +
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = F, col = "black", lwd = 1) +
+  facet_wrap(~typelab, scales = "free") +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 14, margin = margin(2,2,2,2))) +
+  ylab("Probability") +
+  xlab("Adult survival rate")
+as
+
+
+asdf <- data.frame(ad.surv = res$ad.surv, pinc = pinc, pext = pext) 
+
+# subadult survival ----
+res <- readRDS("output/sensitivity_SS_new.rds")
+names(res) <- c("f", "young.surv", "juv.surv", "subad.surv", "ad.surv", "Ntot")
+str(res)
+
+qe.threshold= 5000
+
+N <- res$Ntot
+inc <- matrix(NA, nrow = dim(N)[1], ncol = dim(N)[2])
+ext <- matrix(NA, nrow = dim(N)[1], ncol = dim(N)[2])
+
+pinc <- numeric(dim(N)[1])
+pext <- numeric(dim(N)[1])
+
+for(i in 1:dim(N)[1]){
+  for(r in 1:dim(N)[2]){
+    inc[i,r] <- ifelse(N[i,r,30] >= N[i,r,1], 1, 0)
+    ext[i,r] <- ifelse(N[i,r,30] < qe.threshold, 1, 0)
+  }
+  pinc[i] <- mean(inc[i,])
+  pext[i] <- mean(ext[i,])
+}
+
+
+ss <- data.frame(surv = res$subad.surv, pinc = pinc, pext = pext) %>% 
+  gather(type, val, 2:3) %>% 
+  mutate(typelab = c("pext" = "Quasi-extinction (<5000 individuals)",
+                     "pinc" = "Stability or growth")[type]) %>% 
+  ggplot(aes(x = surv, y = val)) +
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = F, col = "black", lwd = 1) +
+  facet_wrap(~typelab, scales = "free") +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 14, margin = margin(2,2,2,2))) +
+  ylab("Probability") +
+  xlab("Subadult survival rate") +
+  ylim(0, NA)
+ss
+
+
+ssdf <- data.frame(subad.surv = res$subad.surv, pinc = pinc, pext = pext)
+
+# juvenile survival ----
+res <- readRDS("output/sensitivity_JS_new.rds")
+names(res) <- c("f", "young.surv", "juv.surv", "subad.surv", "ad.surv", "Ntot")
+str(res)
+
+qe.threshold= 5000
+
+N <- res$Ntot
+inc <- matrix(NA, nrow = dim(N)[1], ncol = dim(N)[2])
+ext <- matrix(NA, nrow = dim(N)[1], ncol = dim(N)[2])
+
+pinc <- numeric(dim(N)[1])
+pext <- numeric(dim(N)[1])
+
+for(i in 1:dim(N)[1]){
+  for(r in 1:dim(N)[2]){
+    inc[i,r] <- ifelse(N[i,r,30] >= N[i,r,1], 1, 0)
+    ext[i,r] <- ifelse(N[i,r,30] < qe.threshold, 1, 0)
+  }
+  pinc[i] <- mean(inc[i,])
+  pext[i] <- mean(ext[i,])
+}
+
+
+js <- data.frame(surv = res$juv.surv, pinc = pinc, pext = pext) %>% 
+  gather(type, val, 2:3) %>% 
+  mutate(typelab = c("pext" = "Quasi-extinction (<5000 individuals)",
+                     "pinc" = "Stability or growth")[type]) %>% 
+  ggplot(aes(x = surv, y = val)) +
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = F, col = "black", lwd = 1) +
+  facet_wrap(~typelab, scales = "free") +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 14, margin = margin(2,2,2,2))) +
+  ylab("Probability") +
+  xlab("Juvenile survival rate") +
+  ylim(0, NA)
+js
+
+
+
+jsdf <- data.frame(juv.surv = res$juv.surv, pinc = pinc, pext = pext)
+
+# young survival ----
+res <- readRDS("output/sensitivity_YS_new.rds")
+names(res) <- c("f", "young.surv", "juv.surv", "subad.surv", "ad.surv", "Ntot")
+str(res)
+
+qe.threshold= 5000
+
+N <- res$Ntot
+inc <- matrix(NA, nrow = dim(N)[1], ncol = dim(N)[2])
+ext <- matrix(NA, nrow = dim(N)[1], ncol = dim(N)[2])
+
+pinc <- numeric(dim(N)[1])
+pext <- numeric(dim(N)[1])
+
+for(i in 1:dim(N)[1]){
+  for(r in 1:dim(N)[2]){
+    inc[i,r] <- ifelse(N[i,r,30] >= N[i,r,1], 1, 0)
+    ext[i,r] <- ifelse(N[i,r,30] < qe.threshold, 1, 0)
+  }
+  pinc[i] <- mean(inc[i,])
+  pext[i] <- mean(ext[i,])
+}
+
+
+ys <- data.frame(surv = res$young.surv, pinc = pinc, pext = pext) %>% 
+  gather(type, val, 2:3) %>% 
+  mutate(typelab = c("pext" = "Quasi-extinction (<5000 individuals)",
+                     "pinc" = "Stability or growth")[type]) %>% 
+  ggplot(aes(x = surv, y = val)) +
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = F, col = "black", lwd = 1) +
+  facet_wrap(~typelab, scales = "free") +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 14, margin = margin(2,2,2,2))) +
+  ylab("Probability") +
+  xlab("Subadult survival rate") +
+  ylim(0, NA)
+ys
+
+
+ysdf <- data.frame(young.surv = res$young.surv, pinc = pinc, pext = pext) 
+
+# fecundity ----
+res <- readRDS("output/sensitivity_F_new.rds")
+names(res) <- c("f", "young.surv", "juv.surv", "subad.surv", "ad.surv", "Ntot")
+str(res)
+
+qe.threshold= 5000
+
+N <- res$Ntot
+inc <- matrix(NA, nrow = dim(N)[1], ncol = dim(N)[2])
+ext <- matrix(NA, nrow = dim(N)[1], ncol = dim(N)[2])
+
+pinc <- numeric(dim(N)[1])
+pext <- numeric(dim(N)[1])
+
+for(i in 1:dim(N)[1]){
+  for(r in 1:dim(N)[2]){
+    inc[i,r] <- ifelse(N[i,r,30] >= N[i,r,1], 1, 0)
+    ext[i,r] <- ifelse(N[i,r,30] < qe.threshold, 1, 0)
+  }
+  pinc[i] <- mean(inc[i,])
+  pext[i] <- mean(ext[i,])
+}
+
+
+f <- data.frame(surv = res$f, pinc = pinc, pext = pext) %>% 
+  gather(type, val, 2:3) %>% 
+  mutate(typelab = c("pext" = "Quasi-extinction (<5000 individuals)",
+                     "pinc" = "Stability or growth")[type]) %>% 
+  ggplot(aes(x = surv, y = val)) +
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = F, col = "black", lwd = 1) +
+  facet_wrap(~typelab, scales = "free") +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 14, margin = margin(2,2,2,2))) +
+  ylab("Probability") +
+  xlab("Fecundity") +
+  ylim(0, NA)
+f
+
+
+df <- data.frame(fec = res$f, pinc = pinc, pext = pext) %>% 
+  full_join(asdf) %>% 
+  full_join(ssdf) %>% 
+  full_join(jsdf) %>% 
+  full_join(ysdf)
+
+
+fullplot<- df %>% 
+  gather(type, val, 2:3) %>% 
+  gather(parm, rate, 1:5) %>% 
+  mutate(typelab = c("pext" = "Quasi-extinction (<5000 individuals)",
+                     "pinc" = "Stability or growth")[type]) %>% 
+  filter(parm != "fec") %>% 
+  ggplot(aes(x = rate, y = val, col = parm)) +
+  #geom_point(alpha = 0.1) + 
+  geom_smooth(se = F, lwd = 1) +
+  facet_wrap(~typelab, scales = "free") +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 14, margin = margin(2,2,2,2)),
+        legend.position = "top") +
+  scale_color_discrete(name = "Stage", labels = c("Adult", "Juvenile",
+                                                          "Subadult", "Young")) +
+  ylab("Probability") +
+  xlab("Survival rate") +
+  ylim(0, NA) 
+fullplot
+
+save_plot(fullplot, filename = "output/sensitivity_new.jpg",
+          base_width = 10, base_height = 6)
+
+
+
+fecplot<- df %>% 
+  gather(type, val, 2:3) %>% 
+  gather(parm, rate, 1:5) %>% 
+  mutate(typelab = c("pext" = "Quasi-extinction (<5000 individuals)",
+                     "pinc" = "Stability or growth")[type]) %>% 
+  filter(parm == "fec") %>% 
+  ggplot(aes(x = rate, y = val, col = "a")) +
+  #geom_point(alpha = 0.1) + 
+  geom_smooth(se = F, lwd = 1) +
+  facet_wrap(~typelab, scales = "free") +
+  theme(strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 14, margin = margin(2,2,2,2)),
+        legend.position = "top") +
+  scale_color_manual(name = "", labels = c("Fecundity"),
+                     values = c("a" = "steelblue4")) +
+  ylab("Probability") +
+  xlab("Number of young per adult per year") +
+  ylim(0, NA) 
+fecplot
+
+
+save_plot(fecplot, filename = "output/sensitivity_new_f.jpg",
+          base_width = 10, base_height = 6)

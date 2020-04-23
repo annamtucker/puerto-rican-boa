@@ -1,0 +1,30 @@
+
+x = data.frame(x = get_beta_vals(1000000, 0.9, 0.14))
+
+ggplot(x, aes(x = x)) +
+  geom_density(, fill = "gray70", lwd = 1) +
+  xlab("Possible values for average adult survival") +
+  ylab("Density") +
+  theme(axis.text = element_text(size = 20),
+        axis.title = element_text(size = 22))
+
+x2 = data.frame(x = get_beta_vals(1000000, 0.88, 0.13))
+
+ggplot(x2, aes(x = x)) +
+  geom_density(, fill = "gray70", lwd = 1) +
+  xlab("Possible values for annual adult survival") +
+  ylab("Density") +
+  theme(axis.text = element_text(size = 20),
+        axis.title = element_text(size = 22))
+
+x3 = data.frame(x = get_beta_vals(30, 0.88, 0.13),
+                year = c(1:30))
+
+ggplot(x3, aes(x = year, y = x)) +
+  geom_point(size = 3) +
+  geom_line(lwd = 1) +
+  geom_hline(yintercept = 0.88, lty = 2, lwd = 1) +
+  xlab("Year") +
+  ylab("Adult survival probability") +
+  theme(axis.text = element_text(size = 20),
+        axis.title = element_text(size = 22))

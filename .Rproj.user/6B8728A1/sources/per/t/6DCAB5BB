@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1578696190113.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2350141942",
+    "id" : "6DCAB5BB",
+    "lastKnownWriteTime" : 1578761057,
+    "last_content_update" : 1578761057565,
+    "path" : "C:/Users/Anna/Box Sync/puerto-rican-boa/scripts/reduce_max_K_Ninit.R",
+    "project_path" : "scripts/reduce_max_K_Ninit.R",
+    "properties" : {
+        "cursorPosition" : "3,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 16,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

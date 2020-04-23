@@ -1,0 +1,52 @@
+library(mpmtools)
+
+# survival rates
+s.y = 0.3
+s.j = 0.9
+s.s = 0.72
+s.a = 0.9
+
+# growth rates - prob of maturing out of each stage
+g.y = 0.67
+g.j = 0.5
+g.s = 0.25
+
+# fecundity and breeding propensity of subadults
+f.a = 9
+f.s = f.a*0.2
+
+pre = matrix(c(s.y*(1-g.y), 0,           f.s*s.y,     f.a*s.y,
+               s.y*g.y,     s.j*(1-g.j), 0,           0,
+               0,           s.j*g.j,     s.s*(1-g.s), 0,
+               0,           0,           s.s*g.s,     s.a),
+             nrow = 4, ncol = 4, byrow = T)
+
+post = matrix(c(s.y*(1-g.y), f.s*s.j*g.j,  f.s*s.s,     f.a*s.a,
+                s.y*g.y,     s.j*(1-g.j),  0,           0,
+                0,           s.j*g.j,      s.s*(1-g.s), 0,
+                0,           0,            s.s*g.s,     s.a),
+              nrow = 4, ncol = 4, byrow = T)
+
+
+eigen.analysis(pre)
+eigen.analysis(post)
+
+pre2 = matrix(c(s.y*(1-g.y), 0,           f.s*s.y*(1-g.y), f.a*s.y*(1-g.y),
+                s.y*g.y,     s.j*(1-g.j), f.s*s.y*g.y,     f.a*s.y*g.y,
+                0,           s.j*g.j,     s.s*(1-g.s),     0,
+                0,           0,           s.s*g.s,         s.a),
+              nrow = 4, ncol = 4, byrow = T)
+
+eigen.analysis(pre2)
+
+
+
+
+post2 = pre_to_post(S0 = s.y, Amat = pre)
+eigen.analysis(post2)
+eigen.analysis(pre)
+
+
+post3 = pre_to_post(S0 = s.y, Amat = pre2)
+eigen.analysis(post3)
+

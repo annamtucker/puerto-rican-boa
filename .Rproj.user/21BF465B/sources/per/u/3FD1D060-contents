@@ -1,0 +1,178 @@
+# simulation results
+
+# read results ----
+sim = readRDS("output/first-sim_100-1000.rds")
+
+# stage 5 = total population size
+Ntot <- sim %>% 
+  dplyr::select(iter, rep, habitat, projection) %>% 
+  unnest() %>% 
+  filter(stage == 5) %>% 
+  mutate(id = paste(rep, iter)) 
+
+# plot pop size over time ----
+
+# by habitat type
+pop_hab <- Ntot %>% 
+  group_by(habitat, year) %>% 
+  summarize(medN = median(deltaN),
+            lci = quantile(deltaN, 0.025),
+            uci = quantile(deltaN, 0.975)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = year, y = medN)) +
+  geom_ribbon(aes(ymin = lci, ymax = uci),
+              alpha = 0.5, fill = "gray70") +
+  geom_line(lwd = 1) +
+  geom_hline(yintercept = 0, lty = 2) +
+  facet_wrap(~habitat) +
+  theme(legend.position = "none",
+        strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 16, margin = margin(1,1,1,1)),
+        axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18),
+        panel.spacing = unit(1, "lines")) +
+  xlab("Year") +
+  ylab("Change in populaton size from Year 1")
+pop_hab
+
+save_plot(pop_hab, file = "output/sim1_pop-hab.jpg",
+          base_width = 10, base_height = 6)
+
+# overall
+pop_tot <- Ntot %>% 
+  group_by(year) %>% 
+  summarize(medN = median(deltaN),
+            lci = quantile(deltaN, 0.025),
+            uci = quantile(deltaN, 0.975)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = year, y = medN)) +
+  geom_ribbon(aes(ymin = lci, ymax = uci),
+              alpha = 0.5, fill = "gray70") +
+  geom_line(lwd = 1) +
+  geom_hline(yintercept = 0, lty = 2) +
+  theme(legend.position = "none",
+        strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 16, margin = margin(1,1,1,1)),
+        axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18)) +
+  xlab("Year") +
+  ylab("Change in populaton size from Year 1") +
+  scale_x_continuous(breaks = seq(0, 30, 5))
+pop_tot
+
+save_plot(pop_tot, file = "output/sim1_pop-tot.jpg",
+          base_width = 8, base_height = 6)
+
+# zoom in to see median trend better
+ymax = 30000
+
+pop_hab_zoom <- Ntot %>% 
+  group_by(habitat, year) %>% 
+  summarize(medN = median(deltaN),
+            lci = quantile(deltaN, 0.025),
+            uci = quantile(deltaN, 0.975)) %>%  
+  ungroup() %>% 
+  ggplot(aes(x = year, y = medN)) +
+  geom_ribbon(aes(ymin = lci, ymax = uci),
+              alpha = 0.5, fill = "gray70") +
+  geom_line(lwd = 1) +
+  geom_hline(yintercept = 0, lty = 2) +
+  facet_wrap(~habitat) +
+  theme(legend.position = "none",
+        strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 16, margin = margin(1,1,1,1)),
+        axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18),
+        panel.spacing = unit(1, "lines")) +
+  xlab("Year") +
+  ylab("Change in populaton size from Year 1") +
+  coord_cartesian(ylim = c(-8000, ymax)) +
+  scale_y_continuous(breaks = seq(-5000, ymax, 10000))
+pop_hab_zoom
+
+save_plot(pop_hab_zoom, file = "output/sim1_pop-hab-zoom.jpg",
+          base_width = 10, base_height = 6)
+
+pop_tot_zoom <- Ntot %>% 
+  group_by(year) %>% 
+  summarize(medN = median(deltaN),
+            lci = quantile(deltaN, 0.025),
+            uci = quantile(deltaN, 0.975)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = year, y = medN)) +
+  geom_ribbon(aes(ymin = lci, ymax = uci),
+              alpha = 0.5, fill = "gray70") +
+  geom_line(lwd = 1) +
+  geom_hline(yintercept = 0, lty = 2) +
+  theme(legend.position = "none",
+        strip.background = element_rect(fill = "white"),
+        strip.text = element_text(size = 16, margin = margin(1,1,1,1)),
+        axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18)) +
+  xlab("Year") +
+  ylab("Change in populaton size from Year 1") +
+  scale_x_continuous(breaks = seq(0, 30, 5)) +
+  coord_cartesian(ylim = c(-8000, ymax)) +
+  scale_y_continuous(breaks = seq(-5000, ymax, 10000))
+pop_tot_zoom
+
+save_plot(pop_tot_zoom, file = "output/sim1_pop-tot-zoom.jpg",
+          base_width = 8, base_height = 6)
+
+# quasi-extinction probability ---- 
+# qe threshold = 50
+
+qe <- Ntot %>% 
+  group_by(year, iter) %>% 
+  summarize(qe.prob = mean(qe)) %>% 
+  ungroup() %>%
+  group_by(year) %>% 
+  summarize(med = median(qe.prob),
+            lci = quantile(qe.prob, 0.025),
+            uci = quantile(qe.prob, 0.975)) %>%
+  ggplot(aes(x = year, y = med)) +
+  geom_ribbon(aes(ymin = lci, ymax = uci), alpha = 0.7, fill = "gray70") +
+  geom_line(lwd = 1) +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18)) +
+  xlab("Year") +
+  ylab("Quasi-extinction probability") +
+  scale_x_continuous(breaks = seq(0, 30, 5))
+
+save_plot(qe, file = "output/sim1_qe.jpg",
+          base_width = 8, base_height = 6)
+
+
+# land cover ---- 
+lc <- read_excel("gis/PR_landcovertype_descriptions.xlsx")
+
+gap <- raster("gis/prgap_landcover.img")
+
+pal <- colorRampPalette(brewer.pal(8, "Dark2"))
+pal1 <- pal(70)
+pal1[1] <- "gray90"
+
+gap_all <- plot(gap, col = pal1)
+gap_all
+
+save_plot(gap_all, file = "output/prgap_all.jpg",
+          base_width = 8, base_height = 6)
+
+lc <- lc %>% 
+  mutate(new.class = case_when(
+    str_detect(`Landcover type`, "forest") ~ "forest",
+    `Landcover type` %in% c("Low-density urban development", 
+                            "Woody agriculture and plantations: Palm plantations") ~ "rural",
+    `Landcover type` == "High-density urban development" ~ "urban"
+  ))
+
+# reclassify raster to only three land cover types
+rc <- lc %>% 
+  mutate(new.val = as.numeric(as.factor(new.class))) %>% 
+  dplyr::select(Value, new.val) %>% 
+  as.matrix()
+
+new.gap <- reclassify(gap, rc, right = NA)
+pal2 <- brewer.pal(4, "Dark2")
+pal2[1] <- "gray90"
+plot(new.gap, col = pal2)

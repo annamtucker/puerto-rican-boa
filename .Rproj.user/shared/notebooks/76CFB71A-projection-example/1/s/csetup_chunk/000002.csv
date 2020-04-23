@@ -1,0 +1,6 @@
+"0","library(tidyverse)"
+"0","library(cowplot)"
+"0","library(popbio)"
+"0","library(knitr)"
+"0","knitr::opts_chunk$set(echo = FALSE, fig.width = 6, fig.height = 4, fig.align = ""center"","
+"0","                      warning = F, message = F)"

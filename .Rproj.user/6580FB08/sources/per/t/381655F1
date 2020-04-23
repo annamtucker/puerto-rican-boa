@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1587661171795.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2402384499",
+    "id" : "381655F1",
+    "lastKnownWriteTime" : 1572883828,
+    "last_content_update" : 1572883828,
+    "path" : "D:/puerto-rican-boa/scripts/projection-functions-2.R",
+    "project_path" : "scripts/projection-functions-2.R",
+    "properties" : {
+        "cursorPosition" : "338,0",
+        "scrollLine" : "305"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

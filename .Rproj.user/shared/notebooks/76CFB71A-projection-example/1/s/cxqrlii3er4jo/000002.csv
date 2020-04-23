@@ -1,0 +1,7 @@
+"0","dist = eigen.analysis(avg.mat)$stable.stage"
+"0","init = tibble(Stage = c(""Young"", ""Juvenile"", ""Subadult"", ""Adult"", ""Total""),"
+"0","              `Proportion in each stage` = c(round(dist, 3), 1),"
+"0","              `Initial number, natural habitat` = c(round(Ninit*0.57*dist), round(Ninit*0.57)),"
+"0","              `Initial number, urban habitat` = c(round(Ninit*0.43*dist), round(Ninit*0.43))"
+"0",")"
+"0","kable(init)"

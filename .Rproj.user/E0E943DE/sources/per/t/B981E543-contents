@@ -1,0 +1,286 @@
+# functions for loopless projections
+
+
+# function to draw average and sd for each iteration ----
+iter_matrix = function(iter){
+  
+  # survival and transition rates
+  surv = avg.mat*surv.mask
+  surv.sd = para.sd.mat*surv.mask
+  
+  avg.surv = matrix(get_beta_vals(16, surv, surv.sd),
+                    nrow = 4, ncol = 4)
+  sd.surv = matrix(rinvgauss(16, surv.sd, 1),
+                   nrow = 4, ncol = 4)
+  sd.surv[is.na(sd.surv)] <- 0
+  
+  # fecundity
+  fec = avg.mat*fec.mask
+  fec.sd = para.sd.mat*fec.mask
+  
+  avg.fec = matrix(rlnorm(16, log(fec), fec.sd),
+                   nrow = 4, ncol = 4)
+  sd.fec = matrix(rinvgauss(16, fec.sd, 1),
+                  nrow = 4, ncol = 4)
+  sd.fec[is.na(sd.fec)] <- 0
+  
+  # output matrices
+  avg = avg.surv + avg.fec
+  sd = sd.surv + sd.fec
+  
+  Ninit = round(runif(1, Ninit.min, Ninit.max))
+  
+  ret <- tibble(avg = list(avg),
+                sd = list(sd),
+                Ninit = Ninit)
+  
+  return(ret)
+}
+
+iter_matrix_sens = function(iter, parm){
+  
+  if(parm == "f"){
+    f = runif(1, fec.range[1], fec.range[2])
+  } else f = 15
+  
+  if(parm == "young.surv"){
+    young.surv = runif(1, ys.range[1], ys.range[2])
+  } else young.surv = 0.3
+  
+  if(parm == "juv.surv"){
+    juv.surv = runif(1, js.range[1], js.range[2])
+  } else juv.surv = 0.9
+  
+  if(parm == "subad.surv"){
+    subad.surv = runif(1, ss.range[1], ss.range[2])
+  } else subad.surv = 0.72
+  
+  if(parm == "ad.surv"){
+    ad.surv = runif(1, as.range[1], as.range[2])
+  } else ad.surv = 0.9
+   
+  # matrix parameters
+  T.YY = young.surv * (1-yj)
+  T.JY = young.surv * yj
+  T.JJ = juv.surv * (1-js)
+  T.SJ = juv.surv * js
+  T.SS = subad.surv * (1-sa)
+  T.AS = subad.surv * sa
+  T.AA = ad.surv
+  F.S = f * subad.bp
+  F.A = f
+  
+  avg.mat = matrix(c(T.YY, 0, F.S, F.A,
+                     T.JY, T.JJ, 0, 0,
+                     0, T.SJ, T.SS, 0,
+                     0, 0, T.AS, T.AA),
+                   nrow = 4, ncol = 4, byrow = T)
+  
+  
+  # parametric uncertainty SD
+  para.sd.mat = avg.mat*para.cv
+  
+  # manually input sd for fecundity
+  para.sd.mat[1,3] <- log(fec.sd)
+  para.sd.mat[1,4] <- log(fec.sd)
+  
+  # survival and transition rates
+  surv = avg.mat*surv.mask
+  surv.sd = para.sd.mat*surv.mask
+  
+  avg.surv = matrix(get_beta_vals(16, surv, surv.sd),
+                    nrow = 4, ncol = 4)
+  sd.surv = matrix(rinvgauss(16, surv.sd, 1),
+                   nrow = 4, ncol = 4)
+  sd.surv[is.na(sd.surv)] <- 0
+  
+  # fecundity
+  fec = avg.mat*fec.mask
+  fec.sd = para.sd.mat*fec.mask
+  
+  avg.fec = matrix(rlnorm(16, log(fec), fec.sd),
+                   nrow = 4, ncol = 4)
+  sd.fec = matrix(rinvgauss(16, fec.sd, 1),
+                  nrow = 4, ncol = 4)
+  sd.fec[is.na(sd.fec)] <- 0
+  
+  # output matrices
+  avg = avg.surv + avg.fec
+  sd = sd.surv + sd.fec
+  
+  Ninit = round(runif(1, Ninit.min, Ninit.max))
+  
+  ret <- tibble(avg = list(avg),
+                sd = list(sd),
+                Ninit = Ninit)
+  
+  return(list(ret, f, young.surv, juv.surv, subad.surv, ad.surv))
+}
+
+
+iter_matrix_sens_2 = function(iter){
+  
+  f = runif(1, fec.range[1], fec.range[2])
+  young.surv = runif(1, ys.range[1], ys.range[2])
+  juv.surv = runif(1, js.range[1], js.range[2])
+  subad.surv = runif(1, ss.range[1], ss.range[2])
+  ad.surv = runif(1, as.range[1], as.range[2])
+
+  # matrix parameters
+  T.YY = young.surv * (1-yj)
+  T.JY = young.surv * yj
+  T.JJ = juv.surv * (1-js)
+  T.SJ = juv.surv * js
+  T.SS = subad.surv * (1-sa)
+  T.AS = subad.surv * sa
+  T.AA = ad.surv
+  F.S = f * subad.bp
+  F.A = f
+  
+  avg.mat = matrix(c(T.YY, 0, F.S, F.A,
+                     T.JY, T.JJ, 0, 0,
+                     0, T.SJ, T.SS, 0,
+                     0, 0, T.AS, T.AA),
+                   nrow = 4, ncol = 4, byrow = T)
+  
+  
+  # parametric uncertainty SD
+  para.sd.mat = avg.mat*para.cv
+  
+  # manually input sd for fecundity
+  para.sd.mat[1,3] <- log(fec.sd)
+  para.sd.mat[1,4] <- log(fec.sd)
+  
+  # survival and transition rates
+  surv = avg.mat*surv.mask
+  surv.sd = para.sd.mat*surv.mask
+  
+  avg.surv = matrix(get_beta_vals(16, surv, surv.sd),
+                    nrow = 4, ncol = 4)
+  sd.surv = matrix(rinvgauss(16, surv.sd, 1),
+                   nrow = 4, ncol = 4)
+  sd.surv[is.na(sd.surv)] <- 0
+  
+  # fecundity
+  fec = avg.mat*fec.mask
+  fec.sd = para.sd.mat*fec.mask
+  
+  avg.fec = matrix(rlnorm(16, log(fec), fec.sd),
+                   nrow = 4, ncol = 4)
+  sd.fec = matrix(rinvgauss(16, fec.sd, 1),
+                  nrow = 4, ncol = 4)
+  sd.fec[is.na(sd.fec)] <- 0
+  
+  # output matrices
+  avg = avg.surv + avg.fec
+  sd = sd.surv + sd.fec
+  
+  Ninit = round(runif(1, Ninit.min, Ninit.max))
+  
+  ret <- tibble(avg = list(avg),
+                sd = list(sd),
+                Ninit = Ninit)
+  
+  return(list(ret, f, young.surv, juv.surv, subad.surv, ad.surv))
+}
+
+# function to draw replicate-level average and sd ----
+rep_matrix = function(avg, sd, prop.hab, Ninit){
+  
+  # survival and transition rates
+  surv = avg*surv.mask
+  surv.sd = sd*surv.mask
+  
+  avg.surv = matrix(get_beta_vals(16, surv, surv.sd),
+                    nrow = 4, ncol = 4)
+  
+  # fecundity
+  fec = avg*fec.mask
+  fec.sd = sd*fec.mask
+  
+  avg.fec = matrix(rlnorm(16, log(fec), fec.sd),
+                   nrow = 4, ncol = 4)
+  
+  # output matrices
+  avg = avg.surv + avg.fec
+  
+  Ninit_hab = round(Ninit*prop.hab)
+  
+  ret <- tibble(avg = list(avg),
+                Ninit_hab = Ninit_hab)
+  
+  return(ret)
+}
+
+
+# project populations  ----
+
+project_pop = function(rep.parms, hab, storm.freq){
+  
+  # adjust average demographic rates for habitat  
+  if(hab == 1){
+    avg <- rep.parms$avg[[1]]
+  }
+  if(hab == 2){
+    avg <- runif(16, rural[1], rural[2]) * rep.parms$avg[[1]]
+  }
+  if(hab == 3){
+    avg <- runif(16, urban[1], urban[2]) * rep.parms$avg[[1]]
+  }
+  if(length(which(avg > 1)) > 0){
+    avg[which(avg > 1)] <- 1
+  }
+  
+  # temporal variation
+  surv = avg*surv.mask
+  surv.sd = surv*temp.cv
+  
+  fec = avg*fec.mask
+  
+  storm = rbinom(n.years, 1, storm.freq)
+  
+  mat = array(NA, dim = c(n.years, 4, 4))
+  for(i in 1:n.years){
+    yr.surv = matrix(get_beta_vals(16, surv, surv.sd),
+                     nrow = 4, ncol = 4)
+    yr.fec = matrix(rpois(16, fec),
+                    nrow = 4, ncol = 4)
+    
+    if(storm[i] == 1){
+      yr.surv <- yr.surv*storm.effect
+    }
+    
+    mat[i,,] <- yr.surv+yr.fec
+  }
+  
+  # start population at stable stage distribution from average matrix
+  dist = eigen.analysis(avg)$stable.stage
+  
+  # population projection matrix
+  N = matrix(NA, nrow = 4, ncol = n.years)
+  N[,1] <- round(rep.parms$Ninit_hab*dist)
+  
+  # project with temporal variation
+  for(i in 2:n.years){
+    N[,i] <- round(mat[i-1,,] %*% N[,i-1])
+  }
+  
+  deltaN = N-N[,1]
+  
+  Ntot = apply(N, 2, sum)
+  deltaNtot = Ntot-Ntot[1]
+  qe = ifelse(Ntot < qe.threshold, 1, 0)
+  
+  out <- tibble(deltaN = c(deltaN),
+                stage = rep(c(1:4), n.years),
+                year = rep(c(1:n.years), each = 4))
+  
+  out <- tibble(deltaN = deltaNtot,
+                stage = 5,
+                year = c(1:n.years),
+                qe = qe) %>% 
+    full_join(out)
+  
+  return(out)
+}
+
